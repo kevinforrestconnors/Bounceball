@@ -24,15 +24,84 @@ var map = {
 function Player(name) {
 
     this.name = name;
+    this.color = randomRGB();
     this.HP = 10;
+    this.restitution = 0.8;
+    this.speed = 0.3;
+
+    this.joySticks = {
+
+        leftJS: {
+            x: 0,
+                y: 0,
+                mag: function() {
+                return (this.x * this.x) + (this.y * this.y);
+            },
+            angle: function() {
+
+                var result = Math.atan(Math.abs(this.y) / Math.abs(this.x)); // only do the calculation once, determine quadrant and adjust for that
+
+                if (this.x === 0) { // straight up or straight down, causes problems with dividing (Y / 0)
+                    if (this.y >= 0) {
+                        return Math.PI * 1.5;
+                    } else {
+                        return Math.PI / 2;
+                    }
+                }
+
+                if (this.x > 0 && this.y < 0) { // 1st quadrant
+                    return result;
+                } else if (this.x < 0 && this.y < 0) { // 2nd quadrant
+                    return Math.PI - result;
+                } else if (this.x < 0 && this.y > 0) { // 3rd quadrant
+                    return Math.PI + result;
+                } else { // 4th quadrant
+                    return (Math.PI * 2) - result;
+                }
+
+            } // end angle
+        },
+        rightJS: {
+            x: 0,
+                y: 0,
+                mag: function() {
+                return (this.x * this.x) + (this.y * this.y);
+            },
+            angle: function() {
+
+                var result = Math.atan(Math.abs(this.y) / Math.abs(this.x)); // only do the calculation once, determine quadrant and adjust for that
+
+                if (this.x === 0) { // straight up or straight down, causes problems with dividing (Y / 0)
+                    if (this.y >= 0) {
+                        return Math.PI * 1.5;
+                    } else {
+                        return Math.PI / 2;
+                    }
+                }
+
+                if (this.x > 0 && this.y < 0) { // 1st quadrant
+                    return result;
+                } else if (this.x < 0 && this.y < 0) { // 2nd quadrant
+                    return Math.PI - result;
+                } else if (this.x < 0 && this.y > 0) { // 3rd quadrant
+                    return Math.PI + result;
+                } else { // 4th quadrant
+                    return (Math.PI * 2) - result;
+                }
+
+            } // end angle
+        }
+    };
 
     this.direction = 0;
-    this.position = {
+    this.aimDirection = 0;
+    this.radius = 50;
+    this.pos = {
         x: Math.random() * map.width,
         y: Math.random() * map.height
     };
 
-    this.velocity = {
+    this.vel = {
         x: 0,
         y: 0
     };
@@ -42,25 +111,21 @@ function Player(name) {
         max: 90,
         notOffCooldown: function() {}
     };
-
     this.shotBig = {
         current: 600,
         max: 600,
         notOffCooldown: function() {}
     };
-
     this.invisBody = {
         current: 900,
         max: 900,
         notOffCooldown: function() {}
     };
-
     this.invisArrow = {
         current: 300,
         max: 300,
         notOffCooldown: function() {}
     };
-
     this.speedBoost = {
         current: 900,
         max: 900,
@@ -102,7 +167,7 @@ function init() {
         players.push(new Player());
     }
 
-
+    gamepadController.startPolling();
 
 } // end init
 
@@ -114,13 +179,52 @@ function gameLoop() {
 
         var p = players[i];
 
-        p.position.x += p.velocity.x;
-        p.position.y += p.velocity.y;
+        p.pos.x += p.vel.x;
+        p.pos.y += p.vel.y;
 
-        circle(p.position.x, p.position.y, 50, "#EEE");
+        // collision test
+        if (p.pos.x > map.width - p.radius) {
+            p.pos.x = map.width - p.radius;
+            p.vel.x *= (p.restitution * -1);
+            p.pos.x += p.vel.x * 2;
+        } else if (p.pos.x < p.radius) {
+            p.pos.x = p.radius;
+            p.vel.x *= (p.restitution * -1);
+            p.pos.x += p.vel.x * 2;
+        }
+
+        if (p.pos.y > map.height - p.radius) {
+            p.pos.y = map.height - p.radius;
+            p.vel.y *= (p.restitution * -1);
+            p.pos.y += p.vel.y * 2;
+        } else if (p.pos.y < p.radius) {
+            p.pos.y = p.radius;
+            p.vel.y *= (p.restitution * -1);
+            p.pos.y += p.vel.y * 2;
+        }
+
+        // change velocity
+        p.vel.x += p.joySticks.leftJS.mag() * Math.cos(p.joySticks.leftJS.angle()) * p.speed;
+        p.vel.y -= p.joySticks.leftJS.mag() * Math.sin(p.joySticks.leftJS.angle()) * p.speed;
+
+        // draw player
+        circle(p.pos.x, p.pos.y, 50, p.color);
+
+        // draw aim circle
+        var aimAngle = p.joySticks.rightJS.angle();
+        var adjX = p.pos.x + (p.radius * Math.cos(aimAngle)); // adjusted X, xi + L*cos0
+        var adjY = p.pos.y - (p.radius * Math.sin(aimAngle)); // adjusted Y, yi + L*sin0
+        circle(adjX, adjY, 10, p.color)
 
     }
 
 } // end gameLoop
+
+
+
+
+
+
+
 
 window.onload = init;

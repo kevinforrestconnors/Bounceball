@@ -65,7 +65,7 @@ function background() {
         var background = ctx.getImageData(0, 0, map.width, map.height);
         // make slightly transparent
         for (var i = 3; i < (4 * map.width * map.height); i += 4) { // every 4th pixel is the transparent data point
-            background.data[i] = 100;
+            background.data[i] = 85;
         }
 
         // store the canvas as an image so that the computations don't need to be run every time
