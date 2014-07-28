@@ -49,9 +49,7 @@ function clone(item) {
     return result;
 }
 
-function gameloop() {
 
-}
 
 var gamepadController = {
 

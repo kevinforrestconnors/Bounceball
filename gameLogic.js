@@ -122,3 +122,5 @@ function gameLoop() {
     }
 
 } // end gameLoop
+
+window.onload = init;
