@@ -25,9 +25,10 @@ function Player(name) {
 
     this.name = name;
     this.color = randomRGB();
+    this.aad = 20; // aim arrow distance
     this.HP = 10;
-    this.restitution = 0.8;
-    this.speed = 0.3;
+    this.restitution = 0.7;
+    this.speed = 0.35;
 
     this.joySticks = {
 
@@ -109,7 +110,10 @@ function Player(name) {
     this.shotSmall = {
         current: 90,
         max: 90,
-        notOffCooldown: function() {}
+        action: function() {
+            console.log("SHOT")
+        },
+        notOffCooldown: function() {console.log("not off cooldown")}
     };
     this.shotBig = {
         current: 600,
@@ -143,6 +147,7 @@ function Player(name) {
     this.castSpell = function(spell) {
         if (spell.current < 0) { // off cooldown
             spell.current = spell.max;
+            spell.action();
         } else {
             spell.notOffCooldown();
         }
@@ -212,9 +217,30 @@ function gameLoop() {
 
         // draw aim circle
         var aimAngle = p.joySticks.rightJS.angle();
-        var adjX = p.pos.x + (p.radius * Math.cos(aimAngle)); // adjusted X, xi + L*cos0
-        var adjY = p.pos.y - (p.radius * Math.sin(aimAngle)); // adjusted Y, yi + L*sin0
-        circle(adjX, adjY, 10, p.color)
+        var adjX = p.pos.x + ((p.radius + p.aad) * Math.cos(aimAngle)); // adjusted X, xi + L*cos0
+        var adjY = p.pos.y - ((p.radius + p.aad) * Math.sin(aimAngle)); // adjusted Y, yi + L*sin0
+        var ctrX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle));
+        var ctrY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle));
+        var lineToLeftX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle - Math.PI / 8));
+        var lineToLeftY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle - Math.PI / 8));
+        var lineToRightX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle + Math.PI / 8));
+        var lineToRightY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle + Math.PI / 8));
+
+        ctx.beginPath();
+        ctx.moveTo(adjX, adjY);
+        ctx.lineTo(lineToRightX, lineToRightY);
+        ctx.lineTo(ctrX, ctrY);
+        ctx.lineTo(lineToLeftX, lineToLeftY);
+        ctx.lineTo(adjX, adjY);
+        ctx.closePath();
+        ctx.fillStyle = p.color;
+        ctx.strokeStyle = p.color;
+        ctx.fill();
+        ctx.stroke();
+
+
+
+        p.cooldown();
 
     }
 

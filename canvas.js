@@ -30,10 +30,6 @@ function line(xi, yi, xf, yf, color) {
     ctx.closePath();
 }
 
-function arrow(p, color) {
-
-}
-
 // effects
 
 var storedBackground;
