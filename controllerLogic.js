@@ -131,18 +131,18 @@ var gamepadController = {
                     if (buttons[i][j].pressed) { // currently pressed
 
                         if (prevButtons[i][j].pressed) { // was pressed last tick too, so trigger onHold
-                            buttonBindings[j].onHold();
+                            buttonBindings[j].onHold(i);
                         } else { // was not pressed last tick, so trigger onPress
-                            buttonBindings[j].onPress();
+                            buttonBindings[j].onPress(i);
                         }
 
                     } else { // not pressed
 
                         if (prevButtons[i][j].pressed) { // was pressed last tick, but isn't anymore, so trigger onRelease
-                            buttonBindings[j].onRelease();
+                            buttonBindings[j].onRelease(i);
                         } else {
                             if (buttonBindings[j].onIdle) { // if it does something when not pressed continuously
-                                buttonBindings[j].onIdle();
+                                buttonBindings[j].onIdle(i);
                             }
                         }
 

@@ -1,8 +1,8 @@
 var buttonBindings = {
 
     0: {
-        onPress: function() {
-            console.log("0 pressed");
+        onPress: function(p) {
+            players[p].castSpell("bigShoot");
         },
         onHold: function() {
             console.log("0 held");
