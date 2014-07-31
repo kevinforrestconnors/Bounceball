@@ -46,11 +46,19 @@ function rgbToRGBA(str, opacity) {
     return "rgba" + str.substring(str.indexOf("("), str.indexOf(")")) + "," + opacity + ")";
 }
 
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+}
+
+function circlesTouching(c1x, c1y, c1r, c2x, c2y, c2r) {
+    return distance(c1x, c1y, c2x, c2y) < c1r + c2r; // the distance between centers is less than the sum of their radii
+}
+
 // map
 
 var map = {
-    width: 700,
-    height: 700
+    width: 1000,
+    height: 1000
 };
 
 // players
@@ -64,7 +72,7 @@ function Player(name) {
 
     this.HP = 10;
     this.restitution = 0.7;
-    this.speed = 0.35;
+    this.speed = 0.7;
     this.shotSize = 10;
 
     this.joySticks = {
@@ -144,31 +152,75 @@ function Player(name) {
         y: 0
     };
 
+    this.bullet = {
+        active: false,
+        numBounces: 0,
+        maxBounces: 3,
+        radius: 10,
+        speed: 30,
+        restitution: 0.9,
+        pos: {
+            x: 0,
+            y: 0
+        },
+        vel: {
+            x: 0,
+            y: 0
+        },
+        destroySelf: function() {
+            this.numBounces = 0;
+            this.active = false;
+            this.radius = 10; // in case it was a big shot
+        }
+    };
+
     var contextThis = this;
 
     this.shotSmall = {
-        current: 90,
-        max: 90,
+        current: 0,
+        max: 30,
         action: function() {
-            console.log("SHOT")
+            if (!contextThis.bullet.active) {
+                contextThis.bullet.active = true;
+                contextThis.bullet.pos.x = contextThis.pos.x + ((contextThis.radius + contextThis.aad) * Math.cos(contextThis.aimDirection));
+                contextThis.bullet.pos.y = contextThis.pos.y - ((contextThis.radius + contextThis.aad) * Math.sin(contextThis.aimDirection));
+                contextThis.bullet.vel.x = contextThis.bullet.speed * Math.cos(contextThis.aimDirection);
+                contextThis.bullet.vel.y = -1 * contextThis.bullet.speed * Math.sin(contextThis.aimDirection);
+            }
+        },
+        cooldown: function() {
+
         },
         notOffCooldown: function() {
-            console.log("not off cooldown")
         }
     };
     this.shotBig = {
-        current: 600,
-        max: 600,
+        current: 450,
+        max: 450,
         redCircleActive: false,
         action: function() {
-            contextThis.shotSize *= 2;
-            // BIGSHOT();
-            contextThis.shotSize /= 2;
-            console.log("SHOTS FIRED");
+            contextThis.bullet.active = false;
+            contextThis.bullet.numBounces = 0; // reset bounces in case a small ball is active
+            contextThis.bullet.radius = 40;
+            contextThis.shotSmall.action();
         },
         cooldown: function() {
-            contextThis.ringColorChange = null;
-            console.log("off cooldown")
+            var thisTemp = this;
+            if (!thisTemp.redCircleActive) {
+                thisTemp.redCircleActive = true;
+                setTimeout(function() {contextThis.ringColorChange = "rgb(0, 255, 0)"}, 50);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.9)"}, 100);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.8)"}, 150);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.7)"}, 200);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.6)"}, 250);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.5)"}, 300);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.4)"}, 350);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.3)"}, 400);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.2)"}, 450);
+                setTimeout(function() {contextThis.ringColorChange = "rgba(0, 255, 0, 0.1)"}, 500);
+                setTimeout(function() {contextThis.ringColorChange = false; thisTemp.redCircleActive = false}, 550);
+            }
+
         },
         notOffCooldown: function() {
             var thisTemp = this;
@@ -184,23 +236,29 @@ function Player(name) {
                 setTimeout(function() {contextThis.ringColorChange = "rgba(255, 0, 0, 0.3)"}, 400);
                 setTimeout(function() {contextThis.ringColorChange = "rgba(255, 0, 0, 0.2)"}, 450);
                 setTimeout(function() {contextThis.ringColorChange = "rgba(255, 0, 0, 0.1)"}, 500);
-                setTimeout(function() {contextThis.ringColorChange = null; thisTemp.redCircleActive = false}, 550);
+                setTimeout(function() {contextThis.ringColorChange = false; thisTemp.redCircleActive = false}, 550);
             }
         }
     };
     this.invisBody = {
         current: 900,
         max: 900,
+        action: function() {},
+        cooldown: function() {},
         notOffCooldown: function() {}
     };
     this.invisArrow = {
         current: 300,
         max: 300,
+        action: function() {},
+        cooldown: function() {},
         notOffCooldown: function() {}
     };
     this.speedBoost = {
         current: 900,
         max: 900,
+        action: function() {},
+        cooldown: function() {},
         notOffCooldown: function() {}
     };
 
@@ -214,7 +272,12 @@ function Player(name) {
 
     this.cooldown = function() {
         for (var spell in this.spells) {
-            this.spells[spell].current--;
+            if (this.spells[spell].current >= 0) {
+                this.spells[spell].current--;
+            }
+            if (this.spells[spell].current == -1) {
+                this.spells[spell].cooldown();
+            }
         }
     };
 
@@ -222,7 +285,6 @@ function Player(name) {
         if (this.spells[spell].current < 0) { // off cooldown
             this.spells[spell].current = this.spells[spell].max;
             this.spells[spell].action();
-            this.spells[spell].cooldown();
         } else {
             this.spells[spell].notOffCooldown();
         }
@@ -323,8 +385,8 @@ function gameLoop() {
         // shield vars
         var shieldLeftX = p.pos.x - Math.cos(aimAngle + Math.PI / 3) * (p.radius + p.aad);
         var shieldLeftY = p.pos.y + Math.sin(aimAngle + Math.PI / 3) * (p.radius + p.aad);
-        var shieldMiddleX = p.pos.x - Math.cos(aimAngle) * (p.radius + p.aad);
-        var shieldMiddleY = p.pos.y + Math.sin(aimAngle) * (p.radius + p.aad);
+        var shieldMiddleX = p.pos.x - Math.cos(aimAngle) * (p.radius + p.aad * 2);
+        var shieldMiddleY = p.pos.y + Math.sin(aimAngle) * (p.radius + p.aad * 2);
         var shieldRightX = p.pos.x - Math.cos(aimAngle - Math.PI / 3) * (p.radius + p.aad);
         var shieldRightY = p.pos.y + Math.sin(aimAngle - Math.PI / 3) * (p.radius + p.aad);
 
@@ -345,7 +407,7 @@ function gameLoop() {
         ctx.beginPath();
         ctx.moveTo(shieldLeftX, shieldLeftY);
         ctx.quadraticCurveTo(shieldMiddleX, shieldMiddleY, shieldRightX, shieldRightY);
-        ctx.lineTo(shieldLeftX, shieldLeftY);
+        ctx.lineTo(shieldMiddleX + Math.cos(aimAngle) * p.aad * 1.5, shieldMiddleY - Math.sin(aimAngle) * p.aad * 1.5);
         ctx.closePath();
         ctx.fillStyle = darkenRGB(rgbStringToArray(p.color));
         ctx.lineWidth = 2;
@@ -354,6 +416,56 @@ function gameLoop() {
 
         circle(shieldLeftX, shieldLeftY, 2, p.color);
         circle(shieldRightX, shieldRightY, 2, p.color);
+
+        // move, collision test, and then draw bullets
+
+        p.bullet.pos.x += p.bullet.vel.x;
+        p.bullet.pos.y += p.bullet.vel.y;
+
+        if (p.bullet.active) {
+
+            circle(p.bullet.pos.x, p.bullet.pos.y, p.bullet.radius, darkenRGB(rgbStringToArray(darkenRGB(rgbStringToArray(p.color))))); // draw bullet
+
+            if (p.bullet.pos.x > map.width - p.bullet.radius) {
+                p.bullet.numBounces++;
+                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                    p.bullet.destroySelf();
+                }
+                p.bullet.pos.x = map.width - p.bullet.radius;
+                p.bullet.vel.x *= (p.bullet.restitution * -1);
+                p.bullet.pos.x += p.bullet.vel.x * 2;
+            } else if (p.bullet.pos.x < p.bullet.radius) {
+                p.bullet.numBounces++;
+                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                    p.bullet.destroySelf();
+                }
+                p.bullet.pos.x = p.bullet.radius;
+                p.bullet.vel.x *= (p.bullet.restitution * -1);
+                p.bullet.pos.x += p.bullet.vel.x * 2;
+            }
+
+            if (p.bullet.pos.y > map.height - p.bullet.radius) {
+                p.bullet.numBounces++;
+                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                    p.bullet.destroySelf();
+                }
+                p.bullet.pos.y = map.height - p.bullet.radius;
+                p.bullet.vel.y *= (p.bullet.restitution * -1);
+                p.bullet.pos.y += p.bullet.vel.y * 2;
+            } else if (p.bullet.pos.y < p.bullet.radius) {
+                p.bullet.numBounces++;
+                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                    p.bullet.destroySelf();
+                }
+                p.bullet.pos.y = p.bullet.radius;
+                p.bullet.vel.y *= (p.bullet.restitution * -1);
+                p.bullet.pos.y += p.bullet.vel.y * 2;
+            }
+
+
+
+
+        }
 
 
         p.cooldown();

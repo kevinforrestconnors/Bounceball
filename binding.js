@@ -5,13 +5,10 @@ var buttonBindings = {
             players[p].castSpell("bigShoot");
         },
         onHold: function() {
-            console.log("0 held");
         },
         onRelease: function() {
-            console.log("0 released");
         },
         onIdle: function() {
-            console.log("0 idling");
         }
     },
 
@@ -43,11 +40,18 @@ var buttonBindings = {
     },
 
     4: {
-        onPress: function() {
+        timesHeld: 0,
+        onPress: function(i) {
+            players[i].color = randomRGB();
         },
-        onHold: function() {
+        onHold: function(i) {
+            this.timesHeld++;
+            if (this.timesHeld > 10) {
+                players[i].color = randomRGB();
+            }
         },
         onRelease: function() {
+            this.timesHeld = 0;
         }
     },
 
@@ -88,7 +92,7 @@ var buttonBindings = {
     },
 
     9: {
-        onPress: function() {
+        onPress: function(i) {
         },
         onHold: function() {
         },
@@ -139,8 +143,30 @@ var buttonBindings = {
         },
         onRelease: function() {
         }
+    },
+
+    leftTrigger: {
+        onPress: function(i) {
+
+        },
+        onHold: function() {
+
+        },
+        onRelease: function() {
+        }
+    },
+
+    rightTrigger: {
+        onPress: function(i) {
+            players[i].castSpell("shoot");
+        },
+        onHold: function() {
+
+        },
+        onRelease: function() {
+
+        }
     }
 
-
-
 };
+

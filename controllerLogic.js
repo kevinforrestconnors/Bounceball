@@ -126,6 +126,8 @@ var gamepadController = {
 
             for (var i = 0; i < players.length; i++) { // for each player
 
+                // HANDLE NORMAL ON OFF BUTTONS
+
                 for (var j = 0; j < buttons[i].length; j++) {
 
                     if (buttons[i][j].pressed) { // currently pressed
@@ -150,6 +152,8 @@ var gamepadController = {
 
                 } // end loop for buttons
 
+                // HANDLE JOYSTICKS
+
                 players[i].joySticks.leftJS.x = axes[i][0];
                 players[i].joySticks.leftJS.y = axes[i][1];
 
@@ -163,6 +167,41 @@ var gamepadController = {
                 if (players[i].joySticks.rightJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
                     players[i].aimDirection = players[i].joySticks.rightJS.angle();
                 }
+
+                // HANDLE ANALOGUE BUTTONS
+
+                var leftTrigger = axes[i][4];
+                var rightTigger = axes[i][5];
+                var prevLeftTrigger = prevAxes[i][4];
+                var prevRightTrigger = prevAxes[i][5];
+
+                var currentTriggers = [leftTrigger, rightTigger];
+                var previousTriggers = [prevLeftTrigger, prevRightTrigger];
+                var mappings = [buttonBindings.leftTrigger, buttonBindings.rightTrigger];
+
+                for (var k = 0; k < 2; k++) {
+
+                    if (currentTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // currently pressed
+
+                        if (previousTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // was pressed last tick too, so trigger onHold
+                            mappings[k].onHold(i);
+                        } else { // was not pressed last tick, so trigger onPress
+                            mappings[k].onPress(i);
+                        }
+
+                    } else { // not pressed
+
+                        if (previousTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // was pressed last tick, but isn't anymore, so trigger onRelease
+                            mappings[k].onRelease(i);
+                        } else {
+                            if (mappings[k].onIdle) { // if it does something when not pressed continuously
+                                mappings[k].onIdle(i);
+                            }
+                        }
+
+                    } // end if-else
+
+                } // end for loop for triggers
 
             } // end loop for players
 

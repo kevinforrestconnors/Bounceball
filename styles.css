@@ -1,5 +1,7 @@
 #game {
     border: 12px ridge tan;
+    width: 500px;
+    height: 500px;
 }
 
 .gameContainer {
