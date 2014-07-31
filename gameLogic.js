@@ -1,5 +1,7 @@
 // general functions
 
+var LOGGED = false;
+
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -70,7 +72,8 @@ function Player(name) {
     this.ringColorChange = null;
     this.aad = 20; // aim arrow distance
 
-    this.HP = 10;
+    this.HP = 300 * 60;
+    this.maxHP = 300 * 60;
     this.restitution = 0.7;
     this.speed = 0.7;
     this.shotSize = 10;
@@ -350,7 +353,19 @@ function gameLoop() {
         p.vel.y -= p.joySticks.leftJS.mag() * Math.sin(p.joySticks.leftJS.angle()) * p.speed;
 
         // draw player
-        circle(p.pos.x, p.pos.y, 50, p.color);
+        circle(p.pos.x, p.pos.y, p.radius, p.color);
+
+        // draw blood (lol puns)
+        circle(p.pos.x, p.pos.y, p.radius - 14, "#F00");
+        // draw empty part
+        var percentHPremaining = p.HP / p.maxHP;
+        var arcHeight = -1 * Math.asin(percentHPremaining);
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.pos.x, p.pos.y, p.radius - 14, arcHeight, Math.PI + arcHeight * -1, true);
+        ctx.closePath();
+        ctx.fill();
 
         // draw lighter ring
         ctx.lineWidth = 14;
@@ -465,6 +480,12 @@ function gameLoop() {
 
 
 
+        }
+
+        p.HP--; // to prevent turtling players lose 1 HP / tick
+
+        if (p.HP <= 0) {
+            console.log("Player Died"); // TODO: actually remove them from the games
         }
 
 
