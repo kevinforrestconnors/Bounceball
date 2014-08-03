@@ -56,6 +56,40 @@ function circlesTouching(c1x, c1y, c1r, c2x, c2y, c2r) {
     return distance(c1x, c1y, c2x, c2y) < c1r + c2r; // the distance between centers is less than the sum of their radii
 }
 
+function Vector(u1, u2) {
+    this.x = u1;
+    this.y = u2;
+}
+
+function addVectors(v1, v2) {
+    return {
+        x: v1.x + v2.x,
+        y: v1.y + v2.y
+    }
+}
+
+function subtractVectors(v1, v2) {
+    return {
+        x: v1.x - v2.x,
+        y: v1.y - v2.y
+    }
+}
+
+function scaleVector(v1, scalar) {
+    return {
+        x: v1.x * scalar,
+        y: v1.y * scalar
+    }
+}
+
+function dotProduct(v1, v2) {
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
+function vectorMagnitude(v1) {
+    return Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+}
+
 // map
 
 var map = {
@@ -72,8 +106,8 @@ function Player(name) {
     this.ringColorChange = null;
     this.aad = 20; // aim arrow distance
 
-    this.HP = 300 * 60;
-    this.maxHP = 300 * 60;
+    this.HP = 200 * 60;
+    this.maxHP = 200 * 60;
     this.restitution = 0.7;
     this.speed = 0.7;
     this.shotSize = 10;
@@ -169,6 +203,9 @@ function Player(name) {
         vel: {
             x: 0,
             y: 0
+        },
+        direction: function() {
+            return Math.atan(this.vel.y / this.vel.x);
         },
         destroySelf: function() {
             this.numBounces = 0;
@@ -356,7 +393,7 @@ function gameLoop() {
         circle(p.pos.x, p.pos.y, p.radius, p.color);
 
         // draw blood (lol puns)
-        circle(p.pos.x, p.pos.y, p.radius - 14, "#F00");
+        circle(p.pos.x, p.pos.y, p.radius - 14, "rgba(230, 30, 15, 0.8)");
         // draw empty part
         var percentHPremaining = p.HP / p.maxHP;
         var arcHeight = -1 * Math.asin(percentHPremaining);
@@ -438,6 +475,69 @@ function gameLoop() {
         p.bullet.pos.y += p.bullet.vel.y;
 
         if (p.bullet.active) {
+
+            // test if bullet has collided with any players and if so, remove the bullet and decrement that player's HP by 10% of their max
+            for (var lp = 0; lp < players.length; lp++) {
+
+                var c1 = p.bullet;
+                var c2 = players[lp];
+
+                if (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) {
+
+                    var A = c1.radius * c1.radius * Math.PI; // define mass as the area
+                    var B = c2.radius * c2.radius * Math.PI;
+
+                    var v1 = new Vector(c1.vel.x, c1.vel.y);
+                    var v2 = new Vector(c2.vel.x, c2.vel.y);
+
+                    // get the collision normal vector
+                    var normalVector = subtractVectors(c1.pos, c2.pos);
+                    var normalVectorMag = vectorMagnitude(normalVector);
+                    normalVector.x /= normalVectorMag;
+                    normalVector.y /= normalVectorMag;
+
+                    var a1 = dotProduct(normalVector, v1);
+                    var a2 = dotProduct(normalVector, v2);
+
+                    var optimizedP = (2 * (a1 - a2)) / (A + B);
+
+                    var oP1 = scaleVector(normalVector, optimizedP * B);
+                    var oP2 = scaleVector(normalVector, optimizedP * A);
+
+                    var v1f = subtractVectors(v1, oP1);
+                    var v2f = addVectors(v2, oP2);
+
+                    c1.vel.x = v1f.x;
+                    c1.vel.y = v1f.y;
+
+                    c2.vel.x = v2f.x;
+                    c2.vel.y = v2f.y;
+
+
+                    c2.HP -= c2.maxHP / 10; // player takes damage equal to 10% of max HP
+                    if (c2.HP <= 0) {
+                        console.log("Player Died"); // TODO: actually remove them from the games
+                    }
+
+                    c1.numBounces++;
+
+                    if (c1.numBounces > c1.maxBounces) { // destroy bullet after it bounces 4 times
+                        c1.destroySelf();
+                    }
+
+                    if (true) { // didn't hit shield
+
+
+                    } else { // hit shield and bounced off
+
+                        c2.HP--; // slight penalty for hitting shield
+
+                    }
+
+
+                }
+            } // end player loop
+
 
             circle(p.bullet.pos.x, p.bullet.pos.y, p.bullet.radius, darkenRGB(rgbStringToArray(darkenRGB(rgbStringToArray(p.color))))); // draw bullet
 
