@@ -16,7 +16,7 @@ Each player is a circular being with an arrow and a shield.
 The arrow signifies the direction you are pointing.  
 The shield is used to block projectiles that players fire.
 Players fire bullets at each other, trying to hit the other.  If it hits your shield, it bounces off and you remain unharmed.
-If it hits the rest of your body, you take a hit.  Players can take up to 10 hits before dying.  The last player alive wins!
+If it hits the rest of your body, you take a hit.  Players can take up to 10 hits before dying, and your HP is shown by the red circle (initially full).  The last player alive wins!
 
 ##Controls
 

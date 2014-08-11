@@ -135,8 +135,8 @@ function Player(id, index) {
 
     this.id = id; // stuff to determine which player is which
     this.index = index;
+    this.active = true;
 
-    this.alive = true;
     this.color = randomRGB();
     this.ringColorChange = null;
     this.aad = 20; // aim arrow distance
@@ -216,13 +216,13 @@ function Player(id, index) {
     this.radius = 50;
 
     this.pos = {
-        x: Math.random() * map.width,
-        y: Math.random() * map.height
+        x: map.width * this.index + 100,
+        y: map.height * this.index + 100,
     };
 
     this.vel = {
-        x: 0,
-        y: 0
+        x: 0.001,
+        y: 0.001
     };
 
     this.bullet = {
@@ -230,8 +230,8 @@ function Player(id, index) {
         numBounces: 0,
         maxBounces: 5,
         radius: 10,
-        speed: 30,
-        restitution: 0.9,
+        speed: 50,
+        restitution: 0.7,
         pos: {
             x: 0,
             y: 0
@@ -248,6 +248,19 @@ function Player(id, index) {
             this.active = false;
             this.radius = 10; // in case it was a big shot
         }
+    };
+
+    this.die = function() {
+        this.active = false;
+        this.pos = {
+            x: -500,
+            y: -500
+        };
+        this.vel = {
+            x: 0,
+            y: 0
+        }
+        this.bullet.active = false;
     };
 
     var contextThis = this;
@@ -377,155 +390,263 @@ function gameLoop() {
 
     background();
 
+    var numAlivePlayers = 0;
+
     for (var player in players) {
 
-        var p = players[player];
+        if (players[player].active) {
 
-        p.pos.x += p.vel.x;
-        p.pos.y += p.vel.y;
+            numAlivePlayers++;
 
-        // collision test
-        if (p.pos.x > map.width - p.radius) {
-            p.pos.x = map.width - p.radius;
-            p.vel.x *= (p.restitution * -1);
-            p.pos.x += p.vel.x * 2;
-        } else if (p.pos.x < p.radius) {
-            p.pos.x = p.radius;
-            p.vel.x *= (p.restitution * -1);
-            p.pos.x += p.vel.x * 2;
-        }
+            var p = players[player];
 
-        if (p.pos.y > map.height - p.radius) {
-            p.pos.y = map.height - p.radius;
-            p.vel.y *= (p.restitution * -1);
-            p.pos.y += p.vel.y * 2;
-        } else if (p.pos.y < p.radius) {
-            p.pos.y = p.radius;
-            p.vel.y *= (p.restitution * -1);
-            p.pos.y += p.vel.y * 2;
-        }
+            p.pos.x += p.vel.x;
+            p.pos.y += p.vel.y;
 
-        // change velocity
-        p.vel.x += p.joySticks.leftJS.mag() * Math.cos(p.joySticks.leftJS.angle()) * p.speed;
-        p.vel.y -= p.joySticks.leftJS.mag() * Math.sin(p.joySticks.leftJS.angle()) * p.speed;
+            // collision test
+            if (p.pos.x > map.width - p.radius) {
+                p.pos.x = map.width - p.radius;
+                p.vel.x *= (p.restitution * -1);
+                p.pos.x += p.vel.x * 2;
+            } else if (p.pos.x < p.radius) {
+                p.pos.x = p.radius;
+                p.vel.x *= (p.restitution * -1);
+                p.pos.x += p.vel.x * 2;
+            }
 
-        // draw player
-        circle(p.pos.x, p.pos.y, p.radius, p.color);
+            if (p.pos.y > map.height - p.radius) {
+                p.pos.y = map.height - p.radius;
+                p.vel.y *= (p.restitution * -1);
+                p.pos.y += p.vel.y * 2;
+            } else if (p.pos.y < p.radius) {
+                p.pos.y = p.radius;
+                p.vel.y *= (p.restitution * -1);
+                p.pos.y += p.vel.y * 2;
+            }
 
-        // draw blood (lol puns)
-        circle(p.pos.x, p.pos.y, p.radius - 14, "rgba(230, 30, 15, 0.8)");
-        // draw empty part
-        var percentHPremaining = p.HP / p.maxHP;
-        var arcHeight = -1 * Math.asin(percentHPremaining);
+            // change velocity
+            p.vel.x += p.joySticks.leftJS.mag() * Math.cos(p.joySticks.leftJS.angle()) * p.speed;
+            p.vel.y -= p.joySticks.leftJS.mag() * Math.sin(p.joySticks.leftJS.angle()) * p.speed;
 
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.pos.x, p.pos.y, p.radius - 14, arcHeight * 2, (Math.PI + arcHeight * -1) * 2, true);
-        ctx.closePath();
-        ctx.fill();
+            // draw player
+            circle(p.pos.x, p.pos.y, p.radius, p.color);
 
-        // draw lighter ring
-        ctx.lineWidth = 14;
-        ctx.strokeStyle = rgbToRGBA(lightenRGB(rgbStringToArray(p.color)), 0.5);
-        ctx.beginPath();
-        ctx.arc(p.pos.x, p.pos.y, p.radius - 7, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.closePath();
-        ctx.lineWidth = 2;
+            // draw blood (lol puns)
+            circle(p.pos.x, p.pos.y, p.radius - 14, "rgba(230, 30, 15, 0.8)");
+            // draw empty part
+            var percentHPremaining = p.HP / p.maxHP;
+            var arcHeight = -1 * Math.asin(percentHPremaining);
 
-        if (p.ringColorChange) {
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.pos.x, p.pos.y, p.radius - 14, arcHeight, Math.PI + arcHeight * -1, true);
+            ctx.closePath();
+            ctx.fill();
+
+            // draw lighter ring
             ctx.lineWidth = 14;
-            ctx.strokeStyle = p.ringColorChange;
+            ctx.strokeStyle = rgbToRGBA(lightenRGB(rgbStringToArray(p.color)), 0.5);
             ctx.beginPath();
             ctx.arc(p.pos.x, p.pos.y, p.radius - 7, 0, Math.PI * 2);
             ctx.stroke();
             ctx.closePath();
             ctx.lineWidth = 2;
-        }
 
-        // aim arrow vars
-        var aimAngle = p.aimDirection;
-        var adjX = p.pos.x + ((p.radius + p.aad) * Math.cos(aimAngle)); // adjusted X, xi + L*cos0
-        var adjY = p.pos.y - ((p.radius + p.aad) * Math.sin(aimAngle)); // adjusted Y, yi + L*sin0
-        var ctrX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle));
-        var ctrY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle));
-        var lineToLeftX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle - Math.PI / 8));
-        var lineToLeftY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle - Math.PI / 8));
-        var lineToRightX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle + Math.PI / 8));
-        var lineToRightY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle + Math.PI / 8));
+            if (p.ringColorChange) {
+                ctx.lineWidth = 14;
+                ctx.strokeStyle = p.ringColorChange;
+                ctx.beginPath();
+                ctx.arc(p.pos.x, p.pos.y, p.radius - 7, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.closePath();
+                ctx.lineWidth = 2;
+            }
 
-        // shield vars
-        var shieldLeftX = p.pos.x - Math.cos(aimAngle + Math.PI / 3) * (p.radius + p.aad);
-        var shieldLeftY = p.pos.y + Math.sin(aimAngle + Math.PI / 3) * (p.radius + p.aad);
-        var shieldMiddleX = p.pos.x - Math.cos(aimAngle) * (p.radius + p.aad * 2);
-        var shieldMiddleY = p.pos.y + Math.sin(aimAngle) * (p.radius + p.aad * 2);
-        var shieldRightX = p.pos.x - Math.cos(aimAngle - Math.PI / 3) * (p.radius + p.aad);
-        var shieldRightY = p.pos.y + Math.sin(aimAngle - Math.PI / 3) * (p.radius + p.aad);
+            // aim arrow vars
+            var aimAngle = p.aimDirection;
+            var adjX = p.pos.x + ((p.radius + p.aad) * Math.cos(aimAngle)); // adjusted X, xi + L*cos0
+            var adjY = p.pos.y - ((p.radius + p.aad) * Math.sin(aimAngle)); // adjusted Y, yi + L*sin0
+            var ctrX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle));
+            var ctrY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle));
+            var lineToLeftX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle - Math.PI / 8));
+            var lineToLeftY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle - Math.PI / 8));
+            var lineToRightX = p.pos.x + ((p.radius + p.aad / 2) * Math.cos(aimAngle + Math.PI / 8));
+            var lineToRightY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle + Math.PI / 8));
 
-        // draw arrow
-        ctx.beginPath();
-        ctx.moveTo(adjX, adjY);
-        ctx.lineTo(lineToRightX, lineToRightY);
-        ctx.lineTo(ctrX, ctrY);
-        ctx.lineTo(lineToLeftX, lineToLeftY);
-        ctx.lineTo(adjX, adjY);
-        ctx.closePath();
-        ctx.fillStyle = darkenRGB(rgbStringToArray(p.color));
-        ctx.strokeStyle = p.color;
-        ctx.fill();
-        ctx.stroke();
+            // shield vars
+            var shieldLeftX = p.pos.x - Math.cos(aimAngle + Math.PI / 3) * (p.radius + p.aad);
+            var shieldLeftY = p.pos.y + Math.sin(aimAngle + Math.PI / 3) * (p.radius + p.aad);
+            var shieldMiddleX = p.pos.x - Math.cos(aimAngle) * (p.radius + p.aad * 2);
+            var shieldMiddleY = p.pos.y + Math.sin(aimAngle) * (p.radius + p.aad * 2);
+            var shieldRightX = p.pos.x - Math.cos(aimAngle - Math.PI / 3) * (p.radius + p.aad);
+            var shieldRightY = p.pos.y + Math.sin(aimAngle - Math.PI / 3) * (p.radius + p.aad);
 
-        // draw shield
-        ctx.beginPath();
-        ctx.moveTo(shieldLeftX, shieldLeftY);
-        ctx.quadraticCurveTo(shieldMiddleX, shieldMiddleY, shieldRightX, shieldRightY);
-        ctx.lineTo(shieldMiddleX + Math.cos(aimAngle) * p.aad * 1.5, shieldMiddleY - Math.sin(aimAngle) * p.aad * 1.5);
-        ctx.closePath();
-        ctx.fillStyle = darkenRGB(rgbStringToArray(p.color));
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fill();
+            // draw arrow
+            ctx.beginPath();
+            ctx.moveTo(adjX, adjY);
+            ctx.lineTo(lineToRightX, lineToRightY);
+            ctx.lineTo(ctrX, ctrY);
+            ctx.lineTo(lineToLeftX, lineToLeftY);
+            ctx.lineTo(adjX, adjY);
+            ctx.closePath();
+            ctx.fillStyle = darkenRGB(rgbStringToArray(p.color));
+            ctx.strokeStyle = p.color;
+            ctx.fill();
+            ctx.stroke();
 
-        circle(shieldLeftX, shieldLeftY, 2, p.color);
-        circle(shieldRightX, shieldRightY, 2, p.color);
+            // draw shield
+            ctx.beginPath();
+            ctx.moveTo(shieldLeftX, shieldLeftY);
+            ctx.quadraticCurveTo(shieldMiddleX, shieldMiddleY, shieldRightX, shieldRightY);
+            ctx.lineTo(shieldMiddleX + Math.cos(aimAngle) * p.aad * 1.5, shieldMiddleY - Math.sin(aimAngle) * p.aad * 1.5);
+            ctx.closePath();
+            ctx.fillStyle = darkenRGB(rgbStringToArray(p.color));
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fill();
 
-        // move, collision test, and then draw bullets
+            circle(shieldLeftX, shieldLeftY, 2, p.color);
+            circle(shieldRightX, shieldRightY, 2, p.color);
 
-        p.bullet.pos.x += p.bullet.vel.x;
-        p.bullet.pos.y += p.bullet.vel.y;
+            // move, collision test, and then draw bullets
 
-        if (p.bullet.active) {
+            p.bullet.pos.x += p.bullet.vel.x;
+            p.bullet.pos.y += p.bullet.vel.y;
 
-            // test if bullet has collided with any players and if so, remove the bullet and decrement that player's HP by 10% of their max
-            for (var lp in players) {
+            if (p.bullet.active) {
 
-                var c1 = p.bullet;
-                var c2 = players[lp];
+                // test if bullet has collided with any players and if so, remove the bullet and decrement that player's HP by 10% of their max
+                for (var lp in players) {
 
-                if (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) {
+                    var c1 = p.bullet;
+                    var c2 = players[lp];
 
-                    var A = c1.radius * c1.radius * Math.PI; // define mass as the area
-                    var B = c2.radius * c2.radius * Math.PI;
+                    if (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) {
 
-                    var v1 = new Vector(c1.vel.x, c1.vel.y);
-                    var v2 = new Vector(c2.vel.x, c2.vel.y);
+                        var A = c1.radius * c1.radius * Math.PI; // define mass as the area
+                        var B = c2.radius * c2.radius * Math.PI;
+
+                        var v1 = new Vector(c1.vel.x, c1.vel.y);
+                        var v2 = new Vector(c2.vel.x, c2.vel.y);
+
+                        // get the collision normal vector
+                        var normalVector = subtractVectors(c1.pos, c2.pos);
+                        var normalVectorMag = vectorMagnitude(normalVector);
+                        normalVector.x /= normalVectorMag;
+                        normalVector.y /= normalVectorMag;
+
+                        var a1 = dotProduct(normalVector, v1);
+                        var a2 = dotProduct(normalVector, v2);
+
+                        var optimizedP = (2 * (a1 - a2)) / (A + B);
+
+                        var oP1 = scaleVector(normalVector, optimizedP * B);
+                        var oP2 = scaleVector(normalVector, optimizedP * A);
+
+                        var v1f = subtractVectors(v1, oP1);
+                        var v2f = addVectors(v2, oP2);
+
+                        c1.vel.x = v1f.x;
+                        c1.vel.y = v1f.y;
+
+                        c2.vel.x = v2f.x;
+                        c2.vel.y = v2f.y;
+
+                        c2.HP -= (c2.maxHP / 10); // player takes damage equal to 10% of max HP multiplied by the percent of max bounces it has bounced
+
+                        if (c2.HP <= 0) {
+                            c2.die();
+                        }
+
+
+
+                        if (true) { // didn't hit shield TODO: THIS
+
+                            c1.destroySelf();
+
+                        } else { // hit shield and bounced off
+
+                            c2.HP--; // slight penalty for hitting shield
+
+                        }
+
+
+                    } // end if player touching bullet test
+
+
+                } // end player loop
+
+
+                circle(p.bullet.pos.x, p.bullet.pos.y, p.bullet.radius, darkenRGB(rgbStringToArray(darkenRGB(rgbStringToArray(p.color))))); // draw bullet
+
+                if (p.bullet.pos.x > map.width - p.bullet.radius) {
+                    p.bullet.numBounces++;
+                    if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                        p.bullet.destroySelf();
+                    }
+                    p.bullet.pos.x = map.width - p.bullet.radius;
+                    p.bullet.vel.x *= (p.bullet.restitution * -1);
+                    p.bullet.pos.x += p.bullet.vel.x * 2;
+                } else if (p.bullet.pos.x < p.bullet.radius) {
+                    p.bullet.numBounces++;
+                    if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                        p.bullet.destroySelf();
+                    }
+                    p.bullet.pos.x = p.bullet.radius;
+                    p.bullet.vel.x *= (p.bullet.restitution * -1);
+                    p.bullet.pos.x += p.bullet.vel.x * 2;
+                }
+
+                if (p.bullet.pos.y > map.height - p.bullet.radius) {
+                    p.bullet.numBounces++;
+                    if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                        p.bullet.destroySelf();
+                    }
+                    p.bullet.pos.y = map.height - p.bullet.radius;
+                    p.bullet.vel.y *= (p.bullet.restitution * -1);
+                    p.bullet.pos.y += p.bullet.vel.y * 2;
+                } else if (p.bullet.pos.y < p.bullet.radius) {
+                    p.bullet.numBounces++;
+                    if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
+                        p.bullet.destroySelf();
+                    }
+                    p.bullet.pos.y = p.bullet.radius;
+                    p.bullet.vel.y *= (p.bullet.restitution * -1);
+                    p.bullet.pos.y += p.bullet.vel.y * 2;
+                }
+
+            } // end if bullet active
+
+            c1 = p;
+
+            for (var bp in players) {
+
+                c2 = players[bp];
+
+                if (c1 != c2 && circlesTouching(c1.pos.x, c1.pos.y, c1.radius + 3, c2.pos.x, c2.pos.y, c2.radius + 3)) {
+
+                    A = c1.radius * c1.radius * Math.PI; // define mass as the area
+                    B = c2.radius * c2.radius * Math.PI;
+
+                    v1 = new Vector(c1.vel.x, c1.vel.y);
+                    v2 = new Vector(c2.vel.x, c2.vel.y);
 
                     // get the collision normal vector
-                    var normalVector = subtractVectors(c1.pos, c2.pos);
-                    var normalVectorMag = vectorMagnitude(normalVector);
+                    normalVector = subtractVectors(c1.pos, c2.pos);
+                    normalVectorMag = vectorMagnitude(normalVector);
                     normalVector.x /= normalVectorMag;
                     normalVector.y /= normalVectorMag;
 
-                    var a1 = dotProduct(normalVector, v1);
-                    var a2 = dotProduct(normalVector, v2);
+                    a1 = dotProduct(normalVector, v1);
+                    a2 = dotProduct(normalVector, v2);
 
-                    var optimizedP = (2 * (a1 - a2)) / (A + B);
+                    optimizedP = (2 * (a1 - a2)) / (A + B);
 
-                    var oP1 = scaleVector(normalVector, optimizedP * B);
-                    var oP2 = scaleVector(normalVector, optimizedP * A);
+                    oP1 = scaleVector(normalVector, optimizedP * B);
+                    oP2 = scaleVector(normalVector, optimizedP * A);
 
-                    var v1f = subtractVectors(v1, oP1);
-                    var v2f = addVectors(v2, oP2);
+                    v1f = subtractVectors(v1, oP1);
+                    v2f = addVectors(v2, oP2);
 
                     c1.vel.x = v1f.x;
                     c1.vel.y = v1f.y;
@@ -533,84 +654,33 @@ function gameLoop() {
                     c2.vel.x = v2f.x;
                     c2.vel.y = v2f.y;
 
-                    c2.HP -= (c2.maxHP / 10); // player takes damage equal to 10% of max HP multiplied by the percent of max bounces it has bounced
+                    c1.pos.x += c1.vel.x / 2;
+                    c1.pos.y += c1.vel.y / 2;
 
-                    if (c2.HP <= 0) {
-                        console.log("Player Died"); // TODO: actually remove them from the games
-                    }
+                    c2.pos.x += c2.vel.x / 2;
+                    c2.pos.y += c2.vel.y / 2;
 
-                    c1.numBounces++;
+                } // end if player touching other player test
 
-                    if (c1.numBounces > c1.maxBounces) { // destroy bullet after it bounces 4 times
-                        c1.destroySelf();
-                    }
-
-                    if (true) { // didn't hit shield
-
-
-                    } else { // hit shield and bounced off
-
-                        c2.HP--; // slight penalty for hitting shield
-
-                    }
-
-
-                }
-            } // end player loop
-
-
-            circle(p.bullet.pos.x, p.bullet.pos.y, p.bullet.radius, darkenRGB(rgbStringToArray(darkenRGB(rgbStringToArray(p.color))))); // draw bullet
-
-            if (p.bullet.pos.x > map.width - p.bullet.radius) {
-                p.bullet.numBounces++;
-                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
-                    p.bullet.destroySelf();
-                }
-                p.bullet.pos.x = map.width - p.bullet.radius;
-                p.bullet.vel.x *= (p.bullet.restitution * -1);
-                p.bullet.pos.x += p.bullet.vel.x * 2;
-            } else if (p.bullet.pos.x < p.bullet.radius) {
-                p.bullet.numBounces++;
-                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
-                    p.bullet.destroySelf();
-                }
-                p.bullet.pos.x = p.bullet.radius;
-                p.bullet.vel.x *= (p.bullet.restitution * -1);
-                p.bullet.pos.x += p.bullet.vel.x * 2;
-            }
-
-            if (p.bullet.pos.y > map.height - p.bullet.radius) {
-                p.bullet.numBounces++;
-                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
-                    p.bullet.destroySelf();
-                }
-                p.bullet.pos.y = map.height - p.bullet.radius;
-                p.bullet.vel.y *= (p.bullet.restitution * -1);
-                p.bullet.pos.y += p.bullet.vel.y * 2;
-            } else if (p.bullet.pos.y < p.bullet.radius) {
-                p.bullet.numBounces++;
-                if (p.bullet.numBounces > p.bullet.maxBounces) { // destroy bullet after it bounces 4 times
-                    p.bullet.destroySelf();
-                }
-                p.bullet.pos.y = p.bullet.radius;
-                p.bullet.vel.y *= (p.bullet.restitution * -1);
-                p.bullet.pos.y += p.bullet.vel.y * 2;
             }
 
 
+            p.HP--; // to prevent turtling, players lose 1 HP / tick
+
+            if (p.HP <= 0) {
+                p.die();
+            }
+
+
+            p.cooldown();
 
 
         }
 
-        p.HP--; // to prevent turtling, players lose 1 HP / tick
+    }
 
-        if (p.HP <= 0) {
-            alert("Player " + (p.index + 1) + " Died"); // TODO: actually remove them from the games
-        }
-
-
-        p.cooldown();
-
+    if (numAlivePlayers <= 1) {
+        gameState.gameOver();
     }
 
 } // end gameLoop
