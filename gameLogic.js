@@ -6,12 +6,25 @@ function cloneGamepads(controller) {
 
         var result = {};
 
-        result.buttons = controller.buttons;
-        result.axes = controller.axes
+        result.buttons = [];
+
+        for (var i = 0; i < controller.buttons.length; i++) {
+            result.buttons.push({
+                pressed: controller.buttons[i].pressed
+            });
+        }
+
+        result.axes = [];
+
+        for (var i = 0; i < controller.axes.length; i++) {
+            result.axes.push(controller.axes[i]);
+        }
+
         result.id = controller.id;
         result.index = controller.index;
 
         return result;
+
     } else {
         return undefined; // null is a null OBJECT so we use undefined to avoid the for in loop looking at null values
     }
@@ -215,7 +228,7 @@ function Player(id, index) {
     this.bullet = {
         active: false,
         numBounces: 0,
-        maxBounces: 10,
+        maxBounces: 5,
         radius: 10,
         speed: 30,
         restitution: 0.9,
@@ -407,7 +420,7 @@ function gameLoop() {
 
         ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(p.pos.x, p.pos.y, p.radius - 14, arcHeight, Math.PI + arcHeight * -1, true);
+        ctx.arc(p.pos.x, p.pos.y, p.radius - 14, arcHeight * 2, (Math.PI + arcHeight * -1) * 2, true);
         ctx.closePath();
         ctx.fill();
 
@@ -520,7 +533,7 @@ function gameLoop() {
                     c2.vel.x = v2f.x;
                     c2.vel.y = v2f.y;
 
-                    c2.HP -= (c2.maxHP / 10) * ((c1.maxBounces - c1.numBounces) / c1.maxBounces); // player takes damage equal to 10% of max HP multiplied by the percent of max bounces it has bounced
+                    c2.HP -= (c2.maxHP / 10); // player takes damage equal to 10% of max HP multiplied by the percent of max bounces it has bounced
 
                     if (c2.HP <= 0) {
                         console.log("Player Died"); // TODO: actually remove them from the games
@@ -592,7 +605,7 @@ function gameLoop() {
         p.HP--; // to prevent turtling, players lose 1 HP / tick
 
         if (p.HP <= 0) {
-            console.log("Player Died"); // TODO: actually remove them from the games
+            alert("Player " + (p.index + 1) + " Died"); // TODO: actually remove them from the games
         }
 
 

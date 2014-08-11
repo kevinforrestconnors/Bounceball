@@ -107,7 +107,6 @@ var gamepadController = {
             var prevButtons = [];
             var prevAxes = [];
 
-
             for (var b = 0; b < gamepadController.controllers[playerIndex].buttons.length; b++) { // current buttons
                 buttons.push(gamepadController.controllers[playerIndex].buttons[b]);
             }
@@ -121,7 +120,6 @@ var gamepadController = {
             for (var pa = 0; pa < gamepadController.previousControllerState[playerIndex].axes.length; pa++) { // previous axes
                 prevAxes.push(gamepadController.previousControllerState[playerIndex].axes[pa]);
             }
-
 
             // HANDLE NORMAL ON OFF BUTTONS
 
