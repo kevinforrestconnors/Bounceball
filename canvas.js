@@ -1,8 +1,14 @@
 var canvas = document.getElementById("game");
 var ctx = canvas.getContext("2d");
 
+var guiCanvas = document.getElementById("gui");
+var guiCtx = canvas.getContext("2d");
+
 canvas.width = map.width;
 canvas.height = map.height;
+
+guiCanvas.width = map.width;
+guiCanvas.height = map.height;
 
 function clearCanvas() {
     canvas.width = canvas.width;

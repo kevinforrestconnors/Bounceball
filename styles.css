@@ -1,9 +1,24 @@
 #game {
-    border: 12px ridge tan;
+    width: 500px;
+    height: 500px;
+}
+
+#gui {
+    width: 500px;
+    height: 500px;
+    opacity: 0.5;
+}
+
+.gameContainer, .guiContainer {
+    position: absolute;
     width: 500px;
     height: 500px;
 }
 
 .gameContainer {
-    padding: 10%;
+    z-index: -1;
+}
+
+.guiContainer {
+    z-index: 0;
 }

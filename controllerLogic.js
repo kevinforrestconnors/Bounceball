@@ -1,60 +1,19 @@
-function clone(item) {
-    if (!item) { return item; } // null, undefined values check
-
-    var types = [ Number, String, Boolean ];
-    var result;
-
-    // normalizing primitives if someone did new String('aaa'), or new Number('444');
-    types.forEach(function(type) {
-        if (item instanceof type) {
-            result = type( item );
-        }
-    });
-
-    if (typeof result == "undefined") {
-        if (Object.prototype.toString.call( item ) === "[object Array]") {
-            result = [];
-            item.forEach(function(child, index, array) {
-                result[index] = clone( child );
-            });
-        } else if (typeof item == "object") {
-            // testing that this is DOM
-            if (item.nodeType && typeof item.cloneNode == "function") {
-                var result = item.cloneNode( true );
-            } else if (!item.prototype) { // check that this is a literal
-                if (item instanceof Date) {
-                    result = new Date(item);
-                } else {
-                    // it is an object literal
-                    result = {};
-                    for (var i in item) {
-                        result[i] = clone( item[i] );
-                    }
-                }
-            } else {
-                // depending what you would like here,
-                // just keep the reference, or create new object
-                if (false && item.constructor) {
-                    // would not advice to do that, reason? Read below
-                    result = new item.constructor();
-                } else {
-                    result = item;
-                }
-            }
-        } else {
-            result = item;
-        }
-    }
-
-    return result;
-}
-
-
-
 var gamepadController = {
 
 
-    ANALOGUE_BUTTON_THRESHOLD: 0.5, // we don't want analogue buttons to trigger too early from not enough pressure, or to not trigger at all because it isn't pressed down all the way
+
+    numControllersConnected: function() {
+        var num = 0;
+        if (navigator.getGamepads) {
+            if (navigator.getGamepads()[0]) {num++}
+            if (navigator.getGamepads()[1]) {num++}
+            if (navigator.getGamepads()[2]) {num++}
+            if (navigator.getGamepads()[3]) {num++}
+        }
+        return num;
+    },
+
+    ANALOGUE_BUTTON_THRESHOLD: 0.25, // we don't want analogue buttons to trigger too early from not enough pressure, or to not trigger at all because it isn't pressed down all the way
 
     previousControllerState: {},
     controllers: {},
@@ -63,8 +22,18 @@ var gamepadController = {
     startPolling: function() {
         // Don't accidentally start a second loop, man.
         if (!gamepadController.ticking) {
-            gamepadController.controllers = clone(navigator.getGamepads());
-            gamepadController.previousControllerState = clone(navigator.getGamepads());
+            gamepadController.controllers = {
+                0: navigator.getGamepads()[0],
+                1: navigator.getGamepads()[1],
+                2: navigator.getGamepads()[2],
+                3: navigator.getGamepads()[3]
+            };
+            gamepadController.previousControllerState = {
+                0: navigator.getGamepads()[0],
+                1: navigator.getGamepads()[1],
+                2: navigator.getGamepads()[2],
+                3: navigator.getGamepads()[3]
+            };
             gamepadController.ticking = true;
             gamepadController.tick();
         }
@@ -75,8 +44,32 @@ var gamepadController = {
     },
 
     tick: function() {
-        gamepadController.pollStatus();
+
         gameLoop();
+
+        if (gameState.state == 'gui') {
+
+            gameState.drawGui();
+
+            var y = players.mainScreenDemoPlayer.pos.y / 2 - gameState.mousePosition.y;
+            var x = players.mainScreenDemoPlayer.pos.x / 2 - gameState.mousePosition.x;
+
+            if (x > 0 && y < 0) { // 1st quadrant
+                players.mainScreenDemoPlayer.aimDirection = Math.PI + Math.atan(Math.abs(y) / Math.abs(x));
+            } else if (x < 0 && y < 0) { // 2nd quadrant
+                players.mainScreenDemoPlayer.aimDirection = (Math.PI * 2) - Math.atan(Math.abs(y) / Math.abs(x));
+            } else if (x < 0 && y > 0) { // 3rd quadrant
+                players.mainScreenDemoPlayer.aimDirection = Math.atan(Math.abs(y) / Math.abs(x));
+            } else { // 4th quadrant
+                players.mainScreenDemoPlayer.aimDirection = Math.PI - Math.atan(Math.abs(y) / Math.abs(x));
+            }
+
+        } else if (gameState.state == 'game') {
+            gamepadController.pollStatus();
+        } else if (gameState.state == 'gameover') {
+            gameState.gameOverGui();
+        }
+
         gamepadController.scheduleNextTick();
     },
 
@@ -97,124 +90,152 @@ var gamepadController = {
     },
 
     pollStatus: function() {
+
         // retrieve current state
-        gamepadController.controllers = clone(navigator.getGamepads());
+        gamepadController.controllers = {
+            0: navigator.getGamepads()[0],
+            1: navigator.getGamepads()[1],
+            2: navigator.getGamepads()[2],
+            3: navigator.getGamepads()[3]
+        };
 
-        var buttons = [];
-        var prevButtons = [];
+        for (var p in players) { // for each player
 
-        var axes = [];
-        var prevAxes = [];
+            var playerID = "a" + players[p].id.trim() + players[p].index;
+            var playerIndex = players[p].index;
 
-        for (var player in gamepadController.controllers) {
-            if (gamepadController.controllers.hasOwnProperty(player)) {
-                buttons.push(gamepadController.controllers[player].buttons);
-                axes.push(gamepadController.controllers[player].axes);
+            var buttons = [];
+            var axes = [];
+
+            var prevButtons = [];
+            var prevAxes = [];
+
+
+            for (var b = 0; b < gamepadController.controllers[playerIndex].buttons.length; b++) { // current buttons
+                buttons.push(gamepadController.controllers[playerIndex].buttons[b]);
             }
-        }
-
-        for (var previousPlayer in gamepadController.previousControllerState) {
-            if (gamepadController.previousControllerState.hasOwnProperty(previousPlayer)) {
-                prevButtons.push(gamepadController.previousControllerState[previousPlayer].buttons);
-                prevAxes.push(gamepadController.previousControllerState[previousPlayer].axes);
+            for (var a = 0; a < gamepadController.controllers[playerIndex].axes.length; a++) { // current axes
+                axes.push(gamepadController.controllers[playerIndex].axes[a]);
             }
-        }
 
-        //console.log(axes);
+            for (var pb = 0; pb < gamepadController.previousControllerState[playerIndex].buttons.length; pb++) { // previous buttons
+                prevButtons.push(gamepadController.previousControllerState[playerIndex].buttons[pb]);
+            }
+            for (var pa = 0; pa < gamepadController.previousControllerState[playerIndex].axes.length; pa++) { // previous axes
+                prevAxes.push(gamepadController.previousControllerState[playerIndex].axes[pa]);
+            }
 
-        if (buttons.length == prevButtons.length && buttons.length == axes.length && buttons.length == prevAxes.length) {
 
-            for (var i = 0; i < players.length; i++) { // for each player
+            // HANDLE NORMAL ON OFF BUTTONS
 
-                // HANDLE NORMAL ON OFF BUTTONS
+            for (var j = 0; j < buttons.length; j++) {
 
-                for (var j = 0; j < buttons[i].length; j++) {
+                if (buttons[j].pressed) { // currently pressed
 
-                    if (buttons[i][j].pressed) { // currently pressed
+                    if (prevButtons[j].pressed) { // was pressed last tick too, so trigger onHold
+                        buttonBindings[j].onHold(playerID);
+                    } else { // was not pressed last tick, so trigger onPress
+                        buttonBindings[j].onPress(playerID);
+                    }
 
-                        if (prevButtons[i][j].pressed) { // was pressed last tick too, so trigger onHold
-                            buttonBindings[j].onHold(i);
-                        } else { // was not pressed last tick, so trigger onPress
-                            buttonBindings[j].onPress(i);
+                } else { // not pressed
+
+                    if (prevButtons[j].pressed) { // was pressed last tick, but isn't anymore, so trigger onRelease
+                        buttonBindings[j].onRelease(playerID);
+                    } else {
+                        if (buttonBindings[j].onIdle) { // if it does something when not pressed continuously
+                            buttonBindings[j].onIdle(playerID);
                         }
+                    }
 
-                    } else { // not pressed
+                } // end if-else
 
-                        if (prevButtons[i][j].pressed) { // was pressed last tick, but isn't anymore, so trigger onRelease
-                            buttonBindings[j].onRelease(i);
-                        } else {
-                            if (buttonBindings[j].onIdle) { // if it does something when not pressed continuously
-                                buttonBindings[j].onIdle(i);
-                            }
+            } // end loop for buttons
+
+            // HANDLE JOYSTICKS
+
+            players[p].joySticks.leftJS.x = axes[0];
+            players[p].joySticks.leftJS.y = axes[1];
+
+            players[p].joySticks.rightJS.x = axes[2];
+            players[p].joySticks.rightJS.y = axes[3];
+
+            if (players[p].joySticks.leftJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
+                players[p].direction = players[p].joySticks.leftJS.angle()
+            }
+
+            if (players[p].joySticks.rightJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
+                players[p].aimDirection = players[p].joySticks.rightJS.angle();
+            }
+
+            // HANDLE ANALOGUE BUTTONS
+
+            var leftTrigger, rightTrigger, prevLeftTrigger, prevRightTrigger, currentTriggers, previousTriggers, mappings;
+
+            if (buttons.length == 17) { // chrome (0 to 1 on triggers)
+
+                leftTrigger = buttons[6];
+                rightTrigger = buttons[7];
+                prevLeftTrigger = prevButtons[6];
+                prevRightTrigger = prevButtons[7];
+
+            } else if (buttons.length == 15) { // firefox (uses -1 to 1 on triggers)
+
+                leftTrigger = (axes[4] + 1) / 2;
+                rightTrigger = (axes[5] + 1) / 2;
+                prevLeftTrigger = (prevAxes[4] + 1) / 2;
+                prevRightTrigger = (prevAxes[5] + 1) / 2;
+
+            } else {
+                alert("Sorry, your browser is not currently supported!");
+                gamepadController.stopPolling();
+            }
+
+            currentTriggers = [leftTrigger, rightTrigger];
+            previousTriggers = [prevLeftTrigger, prevRightTrigger];
+            mappings = [buttonBindings.leftTrigger, buttonBindings.rightTrigger];
+
+            for (var k = 0; k < 2; k++) {
+
+                if (currentTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // currently pressed
+
+                    if (previousTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // was pressed last tick too, so trigger onHold
+                        mappings[k].onHold(playerID);
+                    } else { // was not pressed last tick, so trigger onPress
+                        mappings[k].onPress(playerID);
+                    }
+
+                } else { // not pressed
+
+                    if (previousTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // was pressed last tick, but isn't anymore, so trigger onRelease
+                        mappings[k].onRelease(playerID);
+                    } else {
+                        if (mappings[k].onIdle) { // if it does something when not pressed continuously
+                            mappings[k].onIdle(playerID);
                         }
+                    }
 
-                    } // end if-else
+                } // end if-else
 
-                } // end loop for buttons
+            } // end for loop for triggers
 
-                // HANDLE JOYSTICKS
 
-                players[i].joySticks.leftJS.x = axes[i][0];
-                players[i].joySticks.leftJS.y = axes[i][1];
 
-                players[i].joySticks.rightJS.x = axes[i][2];
-                players[i].joySticks.rightJS.y = axes[i][3];
+        } // end loop for players
 
-                if (players[i].joySticks.leftJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
-                    players[i].direction = players[i].joySticks.leftJS.angle()
-                }
-
-                if (players[i].joySticks.rightJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
-                    players[i].aimDirection = players[i].joySticks.rightJS.angle();
-                }
-
-                // HANDLE ANALOGUE BUTTONS
-
-                var leftTrigger = axes[i][4];
-                var rightTigger = axes[i][5];
-                var prevLeftTrigger = prevAxes[i][4];
-                var prevRightTrigger = prevAxes[i][5];
-
-                var currentTriggers = [leftTrigger, rightTigger];
-                var previousTriggers = [prevLeftTrigger, prevRightTrigger];
-                var mappings = [buttonBindings.leftTrigger, buttonBindings.rightTrigger];
-
-                for (var k = 0; k < 2; k++) {
-
-                    if (currentTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // currently pressed
-
-                        if (previousTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // was pressed last tick too, so trigger onHold
-                            mappings[k].onHold(i);
-                        } else { // was not pressed last tick, so trigger onPress
-                            mappings[k].onPress(i);
-                        }
-
-                    } else { // not pressed
-
-                        if (previousTriggers[k] > gamepadController.ANALOGUE_BUTTON_THRESHOLD) { // was pressed last tick, but isn't anymore, so trigger onRelease
-                            mappings[k].onRelease(i);
-                        } else {
-                            if (mappings[k].onIdle) { // if it does something when not pressed continuously
-                                mappings[k].onIdle(i);
-                            }
-                        }
-
-                    } // end if-else
-
-                } // end for loop for triggers
-
-            } // end loop for players
-
-        } // end if
 
         // store previous state
-        gamepadController.previousControllerState = clone(gamepadController.controllers);
+        gamepadController.previousControllerState = {
+            0: navigator.getGamepads()[0],
+            1: navigator.getGamepads()[1],
+            2: navigator.getGamepads()[2],
+            3: navigator.getGamepads()[3]
+        };
 
     },
 
     onGamepadConnect: function(e) {
         console.log("Controller connected");
-        players.push(new Player());
     },
 
     onGamepadDisconnect: function(e) {

@@ -1,6 +1,5 @@
 // general functions
 
-var LOGGED = false;
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -99,9 +98,15 @@ var map = {
 
 // players
 
-function Player(name) {
+var players = {};
+var numPlayers = 0;
 
-    this.name = name;
+function Player(id, index) {
+
+    this.id = id; // stuff to determine which player is which
+    this.index = index;
+
+    this.alive = true;
     this.color = randomRGB();
     this.ringColorChange = null;
     this.aad = 20; // aim arrow distance
@@ -179,6 +184,7 @@ function Player(name) {
     this.direction = 0;
     this.aimDirection = 0;
     this.radius = 50;
+
     this.pos = {
         x: Math.random() * map.width,
         y: Math.random() * map.height
@@ -192,7 +198,7 @@ function Player(name) {
     this.bullet = {
         active: false,
         numBounces: 0,
-        maxBounces: 3,
+        maxBounces: 10,
         radius: 10,
         speed: 30,
         restitution: 0.9,
@@ -234,6 +240,7 @@ function Player(name) {
         notOffCooldown: function() {
         }
     };
+
     this.shotBig = {
         current: 450,
         max: 450,
@@ -280,6 +287,7 @@ function Player(name) {
             }
         }
     };
+
     this.invisBody = {
         current: 900,
         max: 900,
@@ -287,6 +295,7 @@ function Player(name) {
         cooldown: function() {},
         notOffCooldown: function() {}
     };
+
     this.invisArrow = {
         current: 300,
         max: 300,
@@ -294,6 +303,7 @@ function Player(name) {
         cooldown: function() {},
         notOffCooldown: function() {}
     };
+
     this.speedBoost = {
         current: 900,
         max: 900,
@@ -332,34 +342,14 @@ function Player(name) {
 
 }
 
-var players = [];
-
-function init() {
-
-    background();
-
-    var numPlayers = 0;
-    for (var i = 0; i < navigator.getGamepads().length; i++) {
-        if (navigator.getGamepads()[i]) {
-            numPlayers++;
-        }
-    }
-
-    for (var i = 0; i < numPlayers; i++) {
-        players.push(new Player());
-    }
-
-    gamepadController.startPolling();
-
-} // end init
 
 function gameLoop() {
 
     background();
 
-    for (var i = 0; i < players.length; i++) {
+    for (var player in players) {
 
-        var p = players[i];
+        var p = players[player];
 
         p.pos.x += p.vel.x;
         p.pos.y += p.vel.y;
@@ -477,7 +467,7 @@ function gameLoop() {
         if (p.bullet.active) {
 
             // test if bullet has collided with any players and if so, remove the bullet and decrement that player's HP by 10% of their max
-            for (var lp = 0; lp < players.length; lp++) {
+            for (var lp in players) {
 
                 var c1 = p.bullet;
                 var c2 = players[lp];
@@ -513,8 +503,8 @@ function gameLoop() {
                     c2.vel.x = v2f.x;
                     c2.vel.y = v2f.y;
 
+                    c2.HP -= (c2.maxHP / 10) * ((c1.maxBounces - c1.numBounces) / c1.maxBounces); // player takes damage equal to 10% of max HP multiplied by the percent of max bounces it has bounced
 
-                    c2.HP -= c2.maxHP / 10; // player takes damage equal to 10% of max HP
                     if (c2.HP <= 0) {
                         console.log("Player Died"); // TODO: actually remove them from the games
                     }
@@ -582,7 +572,7 @@ function gameLoop() {
 
         }
 
-        p.HP--; // to prevent turtling players lose 1 HP / tick
+        p.HP--; // to prevent turtling, players lose 1 HP / tick
 
         if (p.HP <= 0) {
             console.log("Player Died"); // TODO: actually remove them from the games
@@ -595,11 +585,34 @@ function gameLoop() {
 
 } // end gameLoop
 
+function init() {
 
+    gameState.drawGui();
 
+    players.mainScreenDemoPlayer = new Player();
+    players.mainScreenDemoPlayer.pos = {
+        x: 500,
+        y: 500
+    };
+    players.mainScreenDemoPlayer.vel = {
+        x: randomInt(3, 15),
+        y: randomInt(3, 15)
+    };
+    players.mainScreenDemoPlayer.restitution = 0.97;
 
+    window.onmousemove = function(e) {
+        gameState.mousePosition.x = e.pageX - $('#gui').offset().left;
+        gameState.mousePosition.y = e.pageY - $('#gui').offset().top;
+    };
 
+    if (navigator.getGamepads) {
+        gameState.selectPlayers();
+        gamepadController.startPolling();
+    } else {
+        gameState.gamepadsNotSupported();
+    }
 
+} // end init
 
 
 window.onload = init;
