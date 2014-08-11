@@ -228,7 +228,7 @@ function Player(id, index) {
     this.bullet = {
         active: false,
         numBounces: 0,
-        maxBounces: 5,
+        maxBounces: 4,
         radius: 10,
         speed: 50,
         restitution: 0.7,
@@ -259,7 +259,7 @@ function Player(id, index) {
         this.vel = {
             x: 0,
             y: 0
-        }
+        };
         this.bullet.active = false;
     };
 
@@ -434,7 +434,7 @@ function gameLoop() {
             // draw blood (lol puns)
             circle(p.pos.x, p.pos.y, p.radius - 14, "rgba(230, 30, 15, 0.8)");
             // draw empty part
-            var percentHPremaining = p.HP / p.maxHP;
+            var percentHPremaining = (p.HP * 2 / p.maxHP) - 1;
             var arcHeight = -1 * Math.asin(percentHPremaining);
 
             ctx.fillStyle = p.color;
@@ -558,11 +558,14 @@ function gameLoop() {
                             c2.die();
                         }
 
+                        c1.numBounces += 2;
 
+                        if (c1.numBounces > c1.maxBounces) { // destroy bullet after it bounces 4 times
+                            c1.destroySelf();
+                        }
 
                         if (true) { // didn't hit shield TODO: THIS
 
-                            c1.destroySelf();
 
                         } else { // hit shield and bounced off
 
