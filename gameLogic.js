@@ -1,5 +1,22 @@
 // general functions
 
+function cloneGamepads(controller) {
+
+    if (controller) {
+
+        var result = {};
+
+        result.buttons = controller.buttons;
+        result.axes = controller.axes
+        result.id = controller.id;
+        result.index = controller.index;
+
+        return result;
+    } else {
+        return undefined; // null is a null OBJECT so we use undefined to avoid the for in loop looking at null values
+    }
+
+}
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;

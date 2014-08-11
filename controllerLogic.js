@@ -15,25 +15,13 @@ var gamepadController = {
 
     ANALOGUE_BUTTON_THRESHOLD: 0.25, // we don't want analogue buttons to trigger too early from not enough pressure, or to not trigger at all because it isn't pressed down all the way
 
-    previousControllerState: {},
+    previousControllerState: undefined,
     controllers: {},
     ticking: false,
 
     startPolling: function() {
         // Don't accidentally start a second loop, man.
         if (!gamepadController.ticking) {
-            gamepadController.controllers = {
-                0: navigator.getGamepads()[0],
-                1: navigator.getGamepads()[1],
-                2: navigator.getGamepads()[2],
-                3: navigator.getGamepads()[3]
-            };
-            gamepadController.previousControllerState = {
-                0: navigator.getGamepads()[0],
-                1: navigator.getGamepads()[1],
-                2: navigator.getGamepads()[2],
-                3: navigator.getGamepads()[3]
-            };
             gamepadController.ticking = true;
             gamepadController.tick();
         }
@@ -91,12 +79,21 @@ var gamepadController = {
 
     pollStatus: function() {
 
+        if (!gamepadController.previousControllerState) { // define it the first time
+            gamepadController.previousControllerState = {
+                0: cloneGamepads(navigator.getGamepads()[0]),
+                1: cloneGamepads(navigator.getGamepads()[1]),
+                2: cloneGamepads(navigator.getGamepads()[2]),
+                3: cloneGamepads(navigator.getGamepads()[3])
+            };
+        }
+
         // retrieve current state
         gamepadController.controllers = {
-            0: navigator.getGamepads()[0],
-            1: navigator.getGamepads()[1],
-            2: navigator.getGamepads()[2],
-            3: navigator.getGamepads()[3]
+            0: cloneGamepads(navigator.getGamepads()[0]),
+            1: cloneGamepads(navigator.getGamepads()[1]),
+            2: cloneGamepads(navigator.getGamepads()[2]),
+            3: cloneGamepads(navigator.getGamepads()[3])
         };
 
         for (var p in players) { // for each player
@@ -189,6 +186,7 @@ var gamepadController = {
             } else {
                 alert("Sorry, your browser is not currently supported!");
                 gamepadController.stopPolling();
+                break;
             }
 
             currentTriggers = [leftTrigger, rightTrigger];
@@ -226,10 +224,10 @@ var gamepadController = {
 
         // store previous state
         gamepadController.previousControllerState = {
-            0: navigator.getGamepads()[0],
-            1: navigator.getGamepads()[1],
-            2: navigator.getGamepads()[2],
-            3: navigator.getGamepads()[3]
+            0: cloneGamepads(navigator.getGamepads()[0]),
+            1: cloneGamepads(navigator.getGamepads()[1]),
+            2: cloneGamepads(navigator.getGamepads()[2]),
+            3: cloneGamepads(navigator.getGamepads()[3])
         };
 
     },
