@@ -1,0 +1,56 @@
+Bounceball
+==========
+
+Bounceball is a locally-multiplayer arcade/action game that makes use of the Gamepad API.  
+It _requires_ a gamepad, such as xBox or Playstation controllers.  
+Keyboard controls do not exist and never will, because the game is not suited for them.
+
+Browsers tested:
+* Firefox (best performance)
+* Chrome (finicky performance)
+* Safari (no performance, Gamepad API not supported)
+
+##Gameplay
+
+Each player is a circular being with an arrow and a shield.  
+The arrow signifies the direction you are pointing.  
+The shield is used to block projectiles that players fire.
+Players fire bullets at each other, trying to hit the other.  If it hits your shield, it bounces off and you remain unharmed.
+If it hits the rest of your body, you take a hit.  Players can take up to 10 hits before dying.  The last player alive wins!
+
+##Controls
+
+Controls vary by controller.  On the xBox controller, which is what I use to test, the controls are as follows:
+
+* __Shoot:__ Right Trigger
+* __Big Shot:__ A
+* __Move:__ Left Joystick
+* __Aim:__ Right Joystick
+
+Controls should be similar on other controllers, though not exactly the same.  
+If you use one and the controls seem especially weird, please contact me and I'll code different controls for that controller.
+
+##Tech Support
+
+If the game doesn't work, there are a few possible reasons why.  It's always a good idea to refresh, first.
+
+If no controllers are being detected, it's possible that your browser does not implement the Gamepad API or your brand of gamepad is not supported by your browser.
+If you are using Chrome, there is a known bug (with Chrome, not my code) where a restart of Chrome is necessary.
+
+If the game doesn't show at all, you're likely using a browser that doesn't even support the HTML5 Canvas!  Get with the times!
+
+You can always contact me with more complicated issues.
+
+## Known Bugs
+
+* Shoot (R Trigger) does not work in Chrome.  Will be fixed soon!
+    
+## Notes
+
+Since I only have 2 controllers, I have only tested the game with 2 players.  Please test it with 3 or 4!
+
+
+----
+
+
+Thanks for playing Bounceball!
