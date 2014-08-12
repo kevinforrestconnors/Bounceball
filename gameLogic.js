@@ -119,6 +119,24 @@ function vectorMagnitude(v1) {
     return Math.sqrt(v1.x * v1.x + v1.y * v1.y);
 }
 
+function playerIntialPosition(index) {
+
+    if (index === 0) {
+        return {x: 50, y: 50}
+    } else if (index === 1) {
+        return {x: map.width - 50, y: 50}
+    } else if (index === 2) {
+        return {x: 50, y: map.height - 50}
+    } else if (index === 3) {
+        return {x: map.width - 50, y: map.height - 50}
+    } else {
+        return {x: 0, y: 0}
+    }
+
+}
+
+
+
 // map
 
 var map = {
@@ -215,14 +233,11 @@ function Player(id, index) {
     this.aimDirection = 0;
     this.radius = 50;
 
-    this.pos = {
-        x: map.width * this.index + 100,
-        y: map.height * this.index + 100,
-    };
+    this.pos = playerIntialPosition(this.index);
 
     this.vel = {
-        x: 0.001,
-        y: 0.001
+        x: randomInt(0, 2) - 1,
+        y: randomInt(0, 2) - 1
     };
 
     this.bullet = {
@@ -552,25 +567,25 @@ function gameLoop() {
                         c2.vel.x = v2f.x;
                         c2.vel.y = v2f.y;
 
-                        c2.HP -= (c2.maxHP / 10); // player takes damage equal to 10% of max HP multiplied by the percent of max bounces it has bounced
-
-                        if (c2.HP <= 0) {
-                            c2.die();
-                        }
-
-                        c1.numBounces += 2;
-
-                        if (c1.numBounces > c1.maxBounces) { // destroy bullet after it bounces 4 times
-                            c1.destroySelf();
-                        }
+                        c1.numBounces++;
 
                         if (true) { // didn't hit shield TODO: THIS
 
+                            c1.numBounces++;
+                            c2.HP -= (c2.maxHP / 10); // player takes damage equal to 10% of max HP
 
                         } else { // hit shield and bounced off
 
                             c2.HP--; // slight penalty for hitting shield
 
+                        }
+
+                        if (c1.numBounces > c1.maxBounces) { // destroy bullet after it bounces 4 times
+                            c1.destroySelf();
+                        }
+
+                        if (c2.HP <= 0) {
+                            c2.die();
                         }
 
 
@@ -626,7 +641,7 @@ function gameLoop() {
 
                 c2 = players[bp];
 
-                if (c1 != c2 && circlesTouching(c1.pos.x, c1.pos.y, c1.radius + 3, c2.pos.x, c2.pos.y, c2.radius + 3)) {
+                if (c1 != c2 && circlesTouching(c1.pos.x, c1.pos.y, c1.radius + 5, c2.pos.x, c2.pos.y, c2.radius + 5)) {
 
                     A = c1.radius * c1.radius * Math.PI; // define mass as the area
                     B = c2.radius * c2.radius * Math.PI;
@@ -657,11 +672,10 @@ function gameLoop() {
                     c2.vel.x = v2f.x;
                     c2.vel.y = v2f.y;
 
-                    c1.pos.x += c1.vel.x / 2;
-                    c1.pos.y += c1.vel.y / 2;
-
-                    c2.pos.x += c2.vel.x / 2;
-                    c2.pos.y += c2.vel.y / 2;
+                    c1.pos.x += c1.vel.x;
+                    c1.pos.y += c1.vel.y
+                    c2.pos.x += c2.vel.x;
+                    c2.pos.y += c2.vel.y;
 
                 } // end if player touching other player test
 

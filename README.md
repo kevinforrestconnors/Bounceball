@@ -23,9 +23,10 @@ If it hits the rest of your body, you take a hit.  Players can take up to 10 hit
 Controls vary by controller.  On the xBox controller, which is what I use to test, the controls are as follows:
 
 * __Shoot:__ Right Trigger
-* __Big Shot:__ A
+* __Big Shot:__ A __or__ Left Trigger
 * __Move:__ Left Joystick
 * __Aim:__ Right Joystick
+* __Chance Color:__ Left Button
 
 Controls should be similar on other controllers, though not exactly the same.  
 If you use one and the controls seem especially weird, please contact me and I'll code different controls for that controller.
@@ -34,7 +35,8 @@ If you use one and the controls seem especially weird, please contact me and I'l
 
 If the game doesn't work, there are a few possible reasons why.  It's always a good idea to refresh, first.
 
-If no controllers are being detected, it's possible that your browser does not implement the Gamepad API or your brand of gamepad is not supported by your browser.
+If no controllers are being detected, the most common reason is that you haven't pressed any buttons yet! 
+It's possible that your browser does not implement the Gamepad API or your brand of gamepad is not supported by your browser.
 If you are using Chrome, there is a known bug (with Chrome, not my code) where a restart of Chrome is necessary.
 
 If the game doesn't show at all, you're likely using a browser that doesn't even support the HTML5 Canvas!  Get with the times!

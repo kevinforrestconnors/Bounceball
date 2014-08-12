@@ -173,8 +173,8 @@ var buttonBindings = {
     },
 
     leftTrigger: {
-        onPress: function() {
-
+        onPress: function(id) {
+            players[id].castSpell("bigShoot");
         },
         onHold: function() {
 
