@@ -161,7 +161,7 @@ function Player(id, index) {
 
     this.HP = 200 * 60;
     this.maxHP = 200 * 60;
-    this.restitution = 0.7;
+    this.restitution = 0.5;
     this.speed = 0.7;
     this.shotSize = 10;
 
@@ -245,8 +245,8 @@ function Player(id, index) {
         numBounces: 0,
         maxBounces: 4,
         radius: 10,
-        speed: 50,
-        restitution: 0.7,
+        speed: 40,
+        restitution: 0.9,
         pos: {
             x: 0,
             y: 0
@@ -262,6 +262,7 @@ function Player(id, index) {
             this.numBounces = 0;
             this.active = false;
             this.radius = 10; // in case it was a big shot
+            this.restitution = 0.9; // in case it was a big shot
         }
     };
 
@@ -307,6 +308,7 @@ function Player(id, index) {
             contextThis.bullet.active = false;
             contextThis.bullet.numBounces = 0; // reset bounces in case a small ball is active
             contextThis.bullet.radius = 40;
+            contextThis.bullet.restitution = 1;
             contextThis.shotSmall.action();
         },
         cooldown: function() {
@@ -572,7 +574,7 @@ function gameLoop() {
                         if (true) { // didn't hit shield TODO: THIS
 
                             c1.numBounces++;
-                            c2.HP -= (c2.maxHP / 10); // player takes damage equal to 10% of max HP
+                            c2.HP -= (c2.maxHP / 20); // player takes damage equal to 10% of max HP
 
                         } else { // hit shield and bounced off
 
