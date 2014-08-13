@@ -29,6 +29,7 @@ Controls vary by controller.  On the xBox controller, which is what I use to tes
 * __Move:__ Left Joystick
 * __Aim:__ Right Joystick
 * __Chance Color:__ Left Button
+* __Stop Moving:__ Left Joystick Click
 
 Controls should be similar on other controllers, though not exactly the same.  
 If you use one and the controls seem especially weird, please contact me and I'll code different controls for that controller.
