@@ -236,8 +236,8 @@ function Player(id, index) {
     this.pos = playerIntialPosition(this.index);
 
     this.vel = {
-        x: randomInt(0, 2) - 1,
-        y: randomInt(0, 2) - 1
+        x: 0,
+        y: 0
     };
 
     this.bullet = {
@@ -674,10 +674,14 @@ function gameLoop() {
                     c2.vel.x = v2f.x;
                     c2.vel.y = v2f.y;
 
-                    c1.pos.x += c1.vel.x;
-                    c1.pos.y += c1.vel.y
-                    c2.pos.x += c2.vel.x;
-                    c2.pos.y += c2.vel.y;
+                    while (circlesTouching(c1.pos.x, c1.pos.y, c1.radius + 5, c2.pos.x, c2.pos.y, c2.radius + 5)) {
+                        c1.pos.x += c1.vel.x / 10;
+                        c1.pos.y += c1.vel.y / 10;
+                        c2.pos.x += c2.vel.x / 10;
+                        c2.pos.y += c2.vel.y / 10;
+                    }
+
+
 
                 } // end if player touching other player test
 
