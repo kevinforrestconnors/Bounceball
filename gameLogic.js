@@ -681,8 +681,6 @@ function gameLoop() {
                         c2.pos.y += c2.vel.y / 10;
                     }
 
-
-
                 } // end if player touching other player test
 
             }

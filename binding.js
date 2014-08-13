@@ -193,6 +193,13 @@ var buttonBindings = {
         onRelease: function() {
 
         }
+    },
+
+    leftJoyStickClick: function(id) {
+        players[id].vel = {
+            x: 0,
+            y: 0
+        }
     }
 
 };

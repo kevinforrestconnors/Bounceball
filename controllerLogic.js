@@ -121,7 +121,60 @@ var gamepadController = {
                 prevAxes.push(gamepadController.previousControllerState[playerIndex].axes[pa]);
             }
 
-            // HANDLE NORMAL ON OFF BUTTONS
+            // HANDLE JOYSTICKS
+
+            players[p].joySticks.leftJS.x = axes[0];
+            players[p].joySticks.leftJS.y = axes[1];
+
+            players[p].joySticks.rightJS.x = axes[2];
+            players[p].joySticks.rightJS.y = axes[3];
+
+            if (players[p].joySticks.leftJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
+                players[p].direction = players[p].joySticks.leftJS.angle()
+            }
+
+            if (players[p].joySticks.rightJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
+                players[p].aimDirection = players[p].joySticks.rightJS.angle();
+            }
+
+            var leftTrigger, rightTrigger, prevLeftTrigger, prevRightTrigger, currentTriggers, previousTriggers, mappings, leftJoystickClick;
+
+            // In Firefox, the left joystick click is button 6, in Chrome it is 10
+
+            if (buttons.length == 17) { // chrome (0 to 1 on triggers)
+
+                leftTrigger = buttons[6];
+                rightTrigger = buttons[7];
+                prevLeftTrigger = prevButtons[6];
+                prevRightTrigger = prevButtons[7];
+                leftJoystickClick = buttons[10];
+
+            } else if (buttons.length == 15) { // firefox (uses -1 to 1 on triggers)
+
+                leftTrigger = (axes[4] + 1) / 2;
+                rightTrigger = (axes[5] + 1) / 2;
+                prevLeftTrigger = (prevAxes[4] + 1) / 2;
+                prevRightTrigger = (prevAxes[5] + 1) / 2;
+                leftJoystickClick = buttons[6];
+
+            } else {
+                alert("Sorry, your browser is not currently supported!");
+                gamepadController.stopPolling();
+                break;
+            }
+
+            currentTriggers = [leftTrigger, rightTrigger];
+            previousTriggers = [prevLeftTrigger, prevRightTrigger];
+            mappings = [buttonBindings.leftTrigger, buttonBindings.rightTrigger];
+
+            // Handle leftJoyStickClick, which is mapped differently between FF and Chrome
+
+            if (leftJoystickClick.pressed) {
+                buttonBindings.leftJoyStickClick(playerID);
+            }
+
+
+            // Handle binary buttons
 
             for (var j = 0; j < buttons.length; j++) {
 
@@ -147,49 +200,8 @@ var gamepadController = {
 
             } // end loop for buttons
 
-            // HANDLE JOYSTICKS
 
-            players[p].joySticks.leftJS.x = axes[0];
-            players[p].joySticks.leftJS.y = axes[1];
-
-            players[p].joySticks.rightJS.x = axes[2];
-            players[p].joySticks.rightJS.y = axes[3];
-
-            if (players[p].joySticks.leftJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
-                players[p].direction = players[p].joySticks.leftJS.angle()
-            }
-
-            if (players[p].joySticks.rightJS.mag() > gamepadController.ANALOGUE_BUTTON_THRESHOLD) {
-                players[p].aimDirection = players[p].joySticks.rightJS.angle();
-            }
-
-            // HANDLE ANALOGUE BUTTONS
-
-            var leftTrigger, rightTrigger, prevLeftTrigger, prevRightTrigger, currentTriggers, previousTriggers, mappings;
-
-            if (buttons.length == 17) { // chrome (0 to 1 on triggers)
-
-                leftTrigger = buttons[6];
-                rightTrigger = buttons[7];
-                prevLeftTrigger = prevButtons[6];
-                prevRightTrigger = prevButtons[7];
-
-            } else if (buttons.length == 15) { // firefox (uses -1 to 1 on triggers)
-
-                leftTrigger = (axes[4] + 1) / 2;
-                rightTrigger = (axes[5] + 1) / 2;
-                prevLeftTrigger = (prevAxes[4] + 1) / 2;
-                prevRightTrigger = (prevAxes[5] + 1) / 2;
-
-            } else {
-                alert("Sorry, your browser is not currently supported!");
-                gamepadController.stopPolling();
-                break;
-            }
-
-            currentTriggers = [leftTrigger, rightTrigger];
-            previousTriggers = [prevLeftTrigger, prevRightTrigger];
-            mappings = [buttonBindings.leftTrigger, buttonBindings.rightTrigger];
+            // Handle analogue buttons
 
             for (var k = 0; k < 2; k++) {
 
@@ -214,7 +226,6 @@ var gamepadController = {
                 } // end if-else
 
             } // end for loop for triggers
-
 
 
         } // end loop for players

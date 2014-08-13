@@ -18,6 +18,8 @@ The shield is used to block projectiles that players fire.
 Players fire bullets at each other, trying to hit the other.  If it hits your shield, it bounces off and you remain unharmed.
 If it hits the rest of your body, you take a hit.  Players can take up to 10 hits before dying, and your HP is shown by the red circle (initially full).  The last player alive wins!
 
+There is a special move, called the Big Shot, which can only be used when your player is flashing green.  Press the left trigger or "A" button to fire a bullet that is four times as large!
+
 ##Controls
 
 Controls vary by controller.  On the xBox controller, which is what I use to test, the controls are as follows:
