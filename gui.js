@@ -50,6 +50,8 @@ var gameState = {
         guiCtx.fillRect(guiCanvas.width * (2/3), guiCanvas.height / 3, guiCanvas.width / 3, guiCanvas.height * (2/3)); // 4 player pane
 
 
+
+
     },
 
     selectPlayers: function() {
@@ -75,10 +77,13 @@ var gameState = {
                     numPlayers = 2;
                 }
 
-                gameState.playingGame();
+                if (numPlayers === gamepadController.numControllersConnected()) {
+                    map.width = numPlayers * 500;
+                    map.height = numPlayers * 500;
+                    gameState.playingGame();
+                }
 
             }
-
 
         });
 

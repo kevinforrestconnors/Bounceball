@@ -77,6 +77,12 @@ function rgbToRGBA(str, opacity) {
     return "rgba" + str.substring(str.indexOf("("), str.indexOf(")")) + "," + opacity + ")";
 }
 
+function quadratic(a, b, c) {
+    var side1 = -1 * b;
+    var side2 = Math.sqrt(b*b - 4*a*c);
+    return [(side1 + side2) / (2 * a), (side1 - side2) / (2 * a)];
+}
+
 function distance(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
@@ -245,8 +251,8 @@ function Player(id, index) {
         numBounces: 0,
         maxBounces: 4,
         radius: 10,
-        speed: 40,
-        restitution: 0.9,
+        speed: 10 + (15 * numPlayers), // 40 / 55 / 70
+        restitution: 0.82 + (0.04 * numPlayers), // 0.9 / 0.94 / 0.98
         pos: {
             x: 0,
             y: 0
@@ -543,8 +549,8 @@ function gameLoop() {
                         var A = c1.radius * c1.radius * Math.PI; // define mass as the area
                         var B = c2.radius * c2.radius * Math.PI;
 
-                        var v1 = new Vector(c1.vel.x, c1.vel.y);
-                        var v2 = new Vector(c2.vel.x, c2.vel.y);
+                        var v1 = new Vector(c1.vel.x, c1.vel.y); // velocity vector for bullet
+                        var v2 = new Vector(c2.vel.x, c2.vel.y); // velocity vector for player
 
                         // get the collision normal vector
                         var normalVector = subtractVectors(c1.pos, c2.pos);
@@ -563,6 +569,7 @@ function gameLoop() {
                         var v1f = subtractVectors(v1, oP1);
                         var v2f = addVectors(v2, oP2);
 
+                        // exchange momentum
                         c1.vel.x = v1f.x;
                         c1.vel.y = v1f.y;
 
@@ -571,24 +578,33 @@ function gameLoop() {
 
                         c1.numBounces++;
 
-                        if (true) { // didn't hit shield TODO: THIS
+                        // determine if it hit shield
+
+                        var angleOffset = Math.PI / 2.5;
+                        var aimVector = new Vector(Math.cos(c2.aimDirection), Math.sin(c2.aimDirection));
+                        var angleBetween = Math.acos(dotProduct(normalVector, aimVector) / (vectorMagnitude(normalVector) * vectorMagnitude(aimVector)));
+
+                        console.log(angleBetween, c2.aimDirection);
+
+                        if (angleBetween < c2.aimDirection + angleOffset + Math.PI && angleBetween > c2.aimDirection - angleOffset + Math.PI) { // hit shield
 
                             c1.numBounces++;
-                            c2.HP -= (c2.maxHP / 20); // player takes damage equal to 10% of max HP
+                            if (c1.numBounces >= c1.maxBounces) {
+                                c1.destroySelf();
+                            }
 
-                        } else { // hit shield and bounced off
 
-                            c2.HP--; // slight penalty for hitting shield
+                        } else { // didn't hit shield
 
-                        }
-
-                        if (c1.numBounces > c1.maxBounces) { // destroy bullet after it bounces 4 times
                             c1.destroySelf();
+                            c2.HP -= (c2.maxHP / 20); // player takes damage equal to 10% of max HP
+                            if (c2.HP <= 0) {
+                                c2.die();
+                            }
+
                         }
 
-                        if (c2.HP <= 0) {
-                            c2.die();
-                        }
+
 
 
                     } // end if player touching bullet test
@@ -722,8 +738,9 @@ function init() {
     players.mainScreenDemoPlayer.restitution = 0.97;
 
     window.onmousemove = function(e) {
-        gameState.mousePosition.x = e.pageX - $('#gui').offset().left;
-        gameState.mousePosition.y = e.pageY - $('#gui').offset().top;
+        var element = $('#gui');
+        gameState.mousePosition.x = e.pageX - element.offset().left;
+        gameState.mousePosition.y = e.pageY - element.offset().top;
     };
 
     if (navigator.getGamepads) {
