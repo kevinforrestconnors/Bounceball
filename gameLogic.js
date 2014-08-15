@@ -726,6 +726,33 @@ function init() {
 
     gameState.drawGui();
 
+    gameState.resizeGame();
+
+    window.onresize = gameState.resizeGame;
+
+    window.onmousemove = function(e) {
+        var element = $('#gui');
+        gameState.mousePosition.x = e.pageX - element.offset().left;
+        gameState.mousePosition.y = e.pageY - element.offset().top;
+    };
+
+    $('.triangle').click(function() {
+
+        $(this).toggleClass('triangle-left');
+        $(this).toggleClass('triangle-right');
+
+        if ($('.howToPlay').is(':visible')) {
+            $('.howToPlay').hide();
+            $('.canvasLayers').css({'margin-left': '30px'})
+        } else {
+            $('.howToPlay').show();
+            $('.canvasLayers').css({'margin-left': '0'})
+        }
+
+        gameState.resizeGame();
+
+    });
+
     players.mainScreenDemoPlayer = new Player();
     players.mainScreenDemoPlayer.pos = {
         x: 500,
@@ -737,11 +764,7 @@ function init() {
     };
     players.mainScreenDemoPlayer.restitution = 0.97;
 
-    window.onmousemove = function(e) {
-        var element = $('#gui');
-        gameState.mousePosition.x = e.pageX - element.offset().left;
-        gameState.mousePosition.y = e.pageY - element.offset().top;
-    };
+
 
     if (navigator.getGamepads) {
         gameState.selectPlayers();

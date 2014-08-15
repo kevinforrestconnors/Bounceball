@@ -1,3 +1,37 @@
+body {
+    background-color: lightgray;
+}
+
+.triangle-left {
+    position: absolute;
+    top: -500px;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-top: 40px solid transparent;
+    border-right: 30px solid brown;
+    border-bottom: 40px solid transparent;
+}
+
+.triangle-right {
+    position: absolute;
+    top: 500px;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-top: 40px solid transparent;
+    border-left: 30px solid brown;
+    border-bottom: 40px solid transparent;
+}
+
+.triangle-left:hover {
+    border-right: 30px solid sandybrown;
+}
+
+.triangle-right:hover {
+    border-left: 30px solid sandybrown;
+}
+
 canvas {
     border: 10px inset beige;
 }
@@ -15,8 +49,8 @@ canvas {
 
 .gameContainer, .guiContainer {
     position: absolute;
-    width: 500px;
-    height: 500px;
+    left: 0;
+    top: 0;
 }
 
 .gameContainer {
@@ -25,4 +59,15 @@ canvas {
 
 .guiContainer {
     z-index: 0;
+}
+
+.howToPlay {
+    float: left;
+    width: 20%;
+}
+
+.canvasLayers {
+    position: relative;
+    float: left;
+    width: 50%;
 }
