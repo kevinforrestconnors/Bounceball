@@ -28,7 +28,7 @@ Controls vary by controller.  On the xBox controller, which is what I use to tes
 * __Big Shot:__ A __or__ Left Trigger
 * __Move:__ Left Joystick
 * __Aim:__ Right Joystick
-* __Chance Color:__ Left Button
+* __Change Color:__ Left Button
 * __Stop Moving:__ Left Joystick Click
 
 Controls should be similar on other controllers, though not exactly the same.  

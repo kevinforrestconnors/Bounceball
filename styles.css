@@ -64,10 +64,12 @@ canvas {
 .howToPlay {
     float: left;
     width: 20%;
+    margin: 20px;
+    font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 .canvasLayers {
     position: relative;
     float: left;
-    width: 50%;
+    width: 70%;
 }

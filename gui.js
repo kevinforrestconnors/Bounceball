@@ -96,7 +96,7 @@ var gameState = {
 
         guiCtx.font = 'bold 20pt Baskerville';
         guiCtx.fillText('• Connect gamepads', 10, 30);
-        guiCtx.fillText('• Click # of Players', 10, 70);
+        guiCtx.fillText('• Click # of Players', 10, 65);
         guiCtx.fillText('• Play ball!', 10, 100);
 
 
