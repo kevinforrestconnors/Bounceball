@@ -2,6 +2,14 @@ body {
     background-color: lightgray;
 }
 
+.links {
+    text-align: center;
+}
+
+.links a {
+    text-decoration: none;
+}
+
 .triangle-left {
     position: absolute;
     top: -500px;
@@ -63,7 +71,7 @@ canvas {
 
 .howToPlay {
     float: left;
-    width: 20%;
+    width: 40%;
     margin: 20px;
     font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
