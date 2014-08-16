@@ -577,15 +577,22 @@ function gameLoop() {
                         c2.vel.x = v2f.x;
                         c2.vel.y = v2f.y;
 
-                        c1.numBounces++;
+                        while (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) { // move apart
+                            c1.pos.x += c1.vel.x / 100;
+                            c1.pos.y += c1.vel.y / 100;
+                            c2.pos.x += c2.vel.x / 100;
+                            c2.pos.y += c2.vel.y / 100;
+                        }
 
                         // determine if it hit shield
 
-                        var angleOffset = Math.PI / 2.5;
+                        var shieldRadius = Math.PI / 3;
+                        normalVector = subtractVectors(c1.pos, c2.pos);
                         var aimVector = new Vector(Math.cos(c2.aimDirection), Math.sin(c2.aimDirection));
-                        var angleBetween = Math.acos(dotProduct(normalVector, aimVector) / (vectorMagnitude(normalVector) * vectorMagnitude(aimVector)));
+                        var angleBetween = Math.acos(dotProduct(normalVector, aimVector) / (vectorMagnitude(normalVector) * vectorMagnitude(aimVector))) - Math.PI;
 
-                        if (angleBetween < c2.aimDirection + angleOffset + Math.PI && angleBetween > c2.aimDirection - angleOffset + Math.PI) { // hit shield
+
+                        if (angleBetween < c2.aimDirection + shieldRadius && angleBetween > c2.aimDirection - shieldRadius) { // hit shield
 
                             c1.numBounces++;
                             if (c1.numBounces >= c1.maxBounces) {

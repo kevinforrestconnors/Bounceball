@@ -40,6 +40,10 @@ body {
     border-left: 30px solid sandybrown;
 }
 
+.error {
+    color: red;
+}
+
 canvas {
     border: 10px inset beige;
 }
