@@ -14,6 +14,15 @@ var gameState = {
 
     state: 'gui',
 
+    paneHovered: 0,
+    paneColor: function(p) {
+        if (p === gameState.paneHovered) {
+            return 0.1;
+        } else {
+            return 0;
+        }
+    },
+
     resizeGame: function() {
         $('#game').width(1).height(1);
         $('#gui').width(1).height(1);
@@ -30,41 +39,78 @@ var gameState = {
         });
     },
 
+    checkRecommendedNumPlayers: function(n) {
+        if (n <= gamepadController.numControllersConnected()) {
+            guiCtx.fillStyle = "#EBE976";
+        } else {
+            guiCtx.fillStyle = "#777";
+        }
+    },
+
     drawGui: function() {
+
 
         guiCtx.fillStyle = "#000";
 
         guiCtx.font = 'bold 60pt Baskerville';
-        guiCtx.fillText('Bounceball', 30, 150);
+        guiCtx.fillText('Bounceball', 395, 680);
 
         guiCtx.font = 'bold 15pt Baskerville';
-        guiCtx.fillText('A game by Kevin Connors', 110, 180);
+        guiCtx.fillText('A game by Kevin Connors', 465, 710); // +80 + 30
 
+        guiCtx.fillStyle = "#CC1100";
+        if (gamepadController.numControllersConnected() > 1) {
+            guiCtx.fillStyle = "#7FFF00"; // good to go
+        }
         guiCtx.font = 'bold 17pt Copperplate';
         guiCtx.fillText('Controllers connected: ' + gamepadController.numControllersConnected(), 360, 300);
+        guiCtx.fillStyle = "#000";
 
         guiCtx.font = 'bold 100pt Copperplate';
+        gameState.checkRecommendedNumPlayers(2);
         guiCtx.fillText('2', 140, 460);
+        gameState.checkRecommendedNumPlayers(3);
         guiCtx.fillText('3', 465, 460);
+        gameState.checkRecommendedNumPlayers(4);
         guiCtx.fillText('4', 790, 460);
 
         guiCtx.font = 'bold 25pt Baskerville';
+        gameState.checkRecommendedNumPlayers(2);
         guiCtx.fillText('Players', 120, 500);
+        gameState.checkRecommendedNumPlayers(3);
         guiCtx.fillText('Players', 445, 500);
+        gameState.checkRecommendedNumPlayers(4);
         guiCtx.fillText('Players', 770, 500);
+
+        guiCtx.fillStyle = "#FFF";
+        guiCtx.strokeStyle = "#777";
+        guiCtx.beginPath();
+        guiCtx.moveTo(0, 0);
+        guiCtx.lineTo(280, 0);
+        guiCtx.quadraticCurveTo(260, 150, 0, 140);
+        guiCtx.lineTo(0, 0);
+        guiCtx.fill();
+        guiCtx.stroke();
+        guiCtx.closePath();
+        guiCtx.fillStyle = "#000";
+
+        guiCtx.font = 'bold 20pt Baskerville';
+        guiCtx.fillText('• Connect gamepads', 10, 30);
+        guiCtx.fillText('• Click # of Players', 10, 70);
+        guiCtx.fillText('• Play ball!', 10, 100);
+
 
         guiCtx.fillStyle = "rgba(0, 0, 0, 0.1)";
         guiCtx.fillRect(0, 0, guiCanvas.width, guiCanvas.height / 3);
 
-        guiCtx.fillStyle = "rgba(0, 0, 0, 0.15)";
+        guiCtx.fillStyle = "rgba(0, 0, 0," + (0.15 + gameState.paneColor(2)) + ")";
         guiCtx.fillRect(0, guiCanvas.height / 3, guiCanvas.width / 3, guiCanvas.height * (2/3)); // 2 player pane
 
-        guiCtx.fillStyle = "rgba(0, 0, 0, 0.2)";
+        guiCtx.fillStyle = "rgba(0, 0, 0," + (0.2 + gameState.paneColor(3)) + ")";
         guiCtx.fillRect(guiCanvas.width / 3, guiCanvas.height / 3, guiCanvas.width / 3, guiCanvas.height * (2/3)); // 3 player pane
 
-        guiCtx.fillStyle = "rgba(0, 0, 0, 0.15)";
+        guiCtx.fillStyle = "rgba(0, 0, 0," + (0.15 + gameState.paneColor(4)) + ")";
         guiCtx.fillRect(guiCanvas.width * (2/3), guiCanvas.height / 3, guiCanvas.width / 3, guiCanvas.height * (2/3)); // 4 player pane
-
 
 
 
@@ -103,7 +149,34 @@ var gameState = {
 
         });
 
+        $("#gui").mousemove(function(e) {
 
+            var w = $(this).width();
+            var h = $(this).height();
+            var posX = $(this).offset().left;
+            var posY = $(this).offset().top;
+            var relativePosX = e.pageX - posX;
+            var relativePosY = e.pageY - posY;
+
+            if (relativePosY > h / 3) {
+
+                if (relativePosX > w * (2/3)) {
+                    gameState.paneHovered = 4;
+                } else if (relativePosX > w / 3) {
+                    gameState.paneHovered = 3;
+                } else {
+                    gameState.paneHovered = 2;
+                }
+
+            } else {
+                gameState.paneHovered = 0;
+            }
+
+        });
+
+        $("#gui").mouseleave(function() {
+            gameState.paneHovered = 0;
+        });
 
     },
 

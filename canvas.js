@@ -36,6 +36,27 @@ function line(xi, yi, xf, yf, color) {
     ctx.closePath();
 }
 
+function guiLine(xi, yi, xf, yf, color) {
+    guiCtx.beginPath();
+    guiCtx.strokeStyle = color || "#000";
+    guiCtx.moveTo(xi, yi);
+    guiCtx.lineTo(xf, yf);
+    guiCtx.stroke();
+    guiCtx.closePath();
+}
+
+
+function guiTriangle(x1, y1, x2, y2, x3, y3, color) {
+    guiCtx.beginPath();
+    guiCtx.strokeStyle = color || "#000";
+    guiCtx.moveTo(x1, y1);
+    guiCtx.lineTo(x2, y2);
+    guiCtx.lineTo(x3, y3);
+    guiCtx.lineTo(x1, y1);
+    guiCtx.fill();
+    guiCtx.closePath();
+}
+
 // effects
 
 var storedBackground;

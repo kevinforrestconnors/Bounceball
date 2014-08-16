@@ -39,8 +39,10 @@ var gamepadController = {
 
             gameState.drawGui();
 
-            var y = players.mainScreenDemoPlayer.pos.y / 2 - gameState.mousePosition.y;
-            var x = players.mainScreenDemoPlayer.pos.x / 2 - gameState.mousePosition.x;
+            var scale = 1000 / $('#gui').height();
+
+            var y = players.mainScreenDemoPlayer.pos.y / scale - gameState.mousePosition.y;
+            var x = players.mainScreenDemoPlayer.pos.x / scale - gameState.mousePosition.x;
 
             if (x > 0 && y < 0) { // 1st quadrant
                 players.mainScreenDemoPlayer.aimDirection = Math.PI + Math.atan(Math.abs(y) / Math.abs(x));
@@ -50,6 +52,14 @@ var gamepadController = {
                 players.mainScreenDemoPlayer.aimDirection = Math.atan(Math.abs(y) / Math.abs(x));
             } else { // 4th quadrant
                 players.mainScreenDemoPlayer.aimDirection = Math.PI - Math.atan(Math.abs(y) / Math.abs(x));
+            }
+
+            if (Math.random() > 0.95) {
+                players.mainScreenDemoPlayer.castSpell('shoot');
+            }
+
+            if (Math.random() > 0.999) {
+                players.mainScreenDemoPlayer.castSpell('bigShoot');
             }
 
         } else if (gameState.state == 'game') {

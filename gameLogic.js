@@ -538,7 +538,7 @@ function gameLoop() {
 
             if (p.bullet.active) {
 
-                // test if bullet has collided with any players and if so, remove the bullet and decrement that player's HP by 10% of their max
+                // test if bullet has collided with any players and if so, remove the bullet and decrement that player's HP by 5% of their max
                 for (var lp in players) {
 
                     var c1 = p.bullet;
@@ -583,8 +583,6 @@ function gameLoop() {
                         var angleOffset = Math.PI / 2.5;
                         var aimVector = new Vector(Math.cos(c2.aimDirection), Math.sin(c2.aimDirection));
                         var angleBetween = Math.acos(dotProduct(normalVector, aimVector) / (vectorMagnitude(normalVector) * vectorMagnitude(aimVector)));
-
-                        console.log(angleBetween, c2.aimDirection);
 
                         if (angleBetween < c2.aimDirection + angleOffset + Math.PI && angleBetween > c2.aimDirection - angleOffset + Math.PI) { // hit shield
 
@@ -759,10 +757,11 @@ function init() {
         y: 500
     };
     players.mainScreenDemoPlayer.vel = {
-        x: randomInt(3, 15),
-        y: randomInt(3, 15)
+        x: randomInt(5, 7),
+        y: randomInt(5, 7)
     };
     players.mainScreenDemoPlayer.restitution = 0.97;
+    players.mainScreenDemoPlayer.bullet.speed = 40;
 
 
 
