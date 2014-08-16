@@ -10,7 +10,8 @@ function cloneGamepads(controller) {
 
         for (var i = 0; i < controller.buttons.length; i++) {
             result.buttons.push({
-                pressed: controller.buttons[i].pressed
+                pressed: controller.buttons[i].pressed,
+                value: controller.buttons[i].value || 0
             });
         }
 
@@ -168,7 +169,7 @@ function Player(id, index) {
     this.HP = 200 * 60;
     this.maxHP = 200 * 60;
     this.restitution = 0.5;
-    this.speed = 0.7;
+    this.speed = 0.5;
     this.shotSize = 10;
 
     this.joySticks = {
@@ -251,7 +252,7 @@ function Player(id, index) {
         numBounces: 0,
         maxBounces: 4,
         radius: 10,
-        speed: 10 + (15 * numPlayers), // 40 / 55 / 70
+        speed: 10 + (10 * numPlayers), // 30 / 40 / 50
         restitution: 0.82 + (0.04 * numPlayers), // 0.9 / 0.94 / 0.98
         pos: {
             x: 0,
@@ -668,8 +669,8 @@ function gameLoop() {
                     // get the collision normal vector
                     normalVector = subtractVectors(c1.pos, c2.pos);
                     normalVectorMag = vectorMagnitude(normalVector);
-                    normalVector.x /= normalVectorMag;
-                    normalVector.y /= normalVectorMag;
+                    normalVector.x /= normalVectorMag + 0.001;
+                    normalVector.y /= normalVectorMag + 0.001;
 
                     a1 = dotProduct(normalVector, v1);
                     a2 = dotProduct(normalVector, v2);
@@ -689,10 +690,10 @@ function gameLoop() {
                     c2.vel.y = v2f.y;
 
                     while (circlesTouching(c1.pos.x, c1.pos.y, c1.radius + 5, c2.pos.x, c2.pos.y, c2.radius + 5)) {
-                        c1.pos.x += c1.vel.x / 10;
-                        c1.pos.y += c1.vel.y / 10;
-                        c2.pos.x += c2.vel.x / 10;
-                        c2.pos.y += c2.vel.y / 10;
+                        c1.pos.x += c1.vel.x / 100;
+                        c1.pos.y += c1.vel.y / 100;
+                        c2.pos.x += c2.vel.x / 100;
+                        c2.pos.y += c2.vel.y / 100;
                     }
 
                 } // end if player touching other player test

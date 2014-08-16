@@ -153,10 +153,10 @@ var gamepadController = {
 
             if (buttons.length == 17) { // chrome (0 to 1 on triggers)
 
-                leftTrigger = buttons[6];
-                rightTrigger = buttons[7];
-                prevLeftTrigger = prevButtons[6];
-                prevRightTrigger = prevButtons[7];
+                leftTrigger = buttons[6].value;
+                rightTrigger = buttons[7].value;
+                prevLeftTrigger = prevButtons[6].value;
+                prevRightTrigger = prevButtons[7].value;
                 leftJoystickClick = buttons[10];
 
             } else if (buttons.length == 15) { // firefox (uses -1 to 1 on triggers)
