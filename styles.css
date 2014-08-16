@@ -71,7 +71,7 @@ canvas {
 
 .howToPlay {
     float: left;
-    width: 40%;
+    width: 30%;
     margin: 20px;
     font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
@@ -79,5 +79,5 @@ canvas {
 .canvasLayers {
     position: relative;
     float: left;
-    width: 70%;
+    width: 40%;
 }
