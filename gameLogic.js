@@ -78,6 +78,10 @@ function rgbToRGBA(str, opacity) {
     return "rgba" + str.substring(str.indexOf("("), str.indexOf(")")) + "," + opacity + ")";
 }
 
+function sameSign(n1, n2) {
+    return (n1 > 0 && n2 > 0) || (n1 < 0 && n2 < 0);
+}
+
 function quadratic(a, b, c) {
     var side1 = -1 * b;
     var side2 = Math.sqrt(b*b - 4*a*c);
@@ -176,8 +180,8 @@ function Player(id, index) {
 
         leftJS: {
             x: 0,
-                y: 0,
-                mag: function() {
+            y: 0,
+            mag: function() {
                 return (this.x * this.x) + (this.y * this.y);
             },
             angle: function() {
@@ -206,8 +210,8 @@ function Player(id, index) {
         },
         rightJS: {
             x: 0,
-                y: 0,
-                mag: function() {
+            y: 0,
+            mag: function() {
                 return (this.x * this.x) + (this.y * this.y);
             },
             angle: function() {
@@ -498,12 +502,12 @@ function gameLoop() {
             var lineToRightY = p.pos.y - ((p.radius + p.aad / 2) * Math.sin(aimAngle + Math.PI / 8));
 
             // shield vars
-            var shieldLeftX = p.pos.x - Math.cos(aimAngle + Math.PI / 3) * (p.radius + p.aad);
-            var shieldLeftY = p.pos.y + Math.sin(aimAngle + Math.PI / 3) * (p.radius + p.aad);
-            var shieldMiddleX = p.pos.x - Math.cos(aimAngle) * (p.radius + p.aad * 2);
-            var shieldMiddleY = p.pos.y + Math.sin(aimAngle) * (p.radius + p.aad * 2);
-            var shieldRightX = p.pos.x - Math.cos(aimAngle - Math.PI / 3) * (p.radius + p.aad);
-            var shieldRightY = p.pos.y + Math.sin(aimAngle - Math.PI / 3) * (p.radius + p.aad);
+            var shieldLeftX = p.pos.x - Math.cos(aimAngle + Math.PI / 3) * (p.radius + 10);
+            var shieldLeftY = p.pos.y + Math.sin(aimAngle + Math.PI / 3) * (p.radius + 10);
+            var shieldMiddleX = p.pos.x - Math.cos(aimAngle) * (p.radius + p.aad + 10);
+            var shieldMiddleY = p.pos.y + Math.sin(aimAngle) * (p.radius + p.aad + 10);
+            var shieldRightX = p.pos.x - Math.cos(aimAngle - Math.PI / 3) * (p.radius + 10);
+            var shieldRightY = p.pos.y + Math.sin(aimAngle - Math.PI / 3) * (p.radius + 10);
 
             // draw arrow
             ctx.beginPath();
@@ -545,62 +549,37 @@ function gameLoop() {
                     var c1 = p.bullet;
                     var c2 = players[lp];
 
-                    if (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) {
+                    var dist = distance(c1.pos.x, c1.pos.y, c2.pos.x + c2.radius * Math.cos(c2.aimDirection + Math.PI), c2.pos.y - c2.radius * Math.sin(c2.aimDirection + Math.PI));
 
-                        var A = c1.radius * c1.radius * Math.PI; // define mass as the area
-                        var B = c2.radius * c2.radius * Math.PI;
+                    if (circlesTouching(c1.pos.x, c1.pos.y, c1.radius + 10, c2.pos.x, c2.pos.y, c2.radius + 10)) { // shield is about 10 from player
 
-                        var v1 = new Vector(c1.vel.x, c1.vel.y); // velocity vector for bullet
-                        var v2 = new Vector(c2.vel.x, c2.vel.y); // velocity vector for player
+                        if (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius) && dist > c2.radius) { // didn't hit shield
 
-                        // get the collision normal vector
-                        var normalVector = subtractVectors(c1.pos, c2.pos);
-                        var normalVectorMag = vectorMagnitude(normalVector);
-                        normalVector.x /= normalVectorMag;
-                        normalVector.y /= normalVectorMag;
+                            var A = c1.radius * c1.radius * Math.PI; // define mass as the area
+                            var B = c2.radius * c2.radius * Math.PI;
 
-                        var a1 = dotProduct(normalVector, v1);
-                        var a2 = dotProduct(normalVector, v2);
+                            var v1 = new Vector(c1.vel.x, c1.vel.y); // velocity vector for bullet
+                            var v2 = new Vector(c2.vel.x, c2.vel.y); // velocity vector for player
 
-                        var optimizedP = (2 * (a1 - a2)) / (A + B);
+                            // get the collision normal vector
+                            var normalVector = subtractVectors(c1.pos, c2.pos);
+                            var normalVectorMag = vectorMagnitude(normalVector);
+                            normalVector.x /= normalVectorMag;
+                            normalVector.y /= normalVectorMag;
 
-                        var oP1 = scaleVector(normalVector, optimizedP * B);
-                        var oP2 = scaleVector(normalVector, optimizedP * A);
+                            var a1 = dotProduct(normalVector, v1);
+                            var a2 = dotProduct(normalVector, v2);
 
-                        var v1f = subtractVectors(v1, oP1);
-                        var v2f = addVectors(v2, oP2);
+                            var optimizedP = (2 * (a1 - a2)) / (A + B);
 
-                        // exchange momentum
-                        c1.vel.x = v1f.x;
-                        c1.vel.y = v1f.y;
+                            var oP2 = scaleVector(normalVector, optimizedP * A);
 
-                        c2.vel.x = v2f.x;
-                        c2.vel.y = v2f.y;
+                            var v2f = addVectors(v2, oP2);
 
-                        while (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) { // move apart
-                            c1.pos.x += c1.vel.x / 100;
-                            c1.pos.y += c1.vel.y / 100;
-                            c2.pos.x += c2.vel.x / 100;
-                            c2.pos.y += c2.vel.y / 100;
-                        }
+                            // exchange momentum
 
-                        // determine if it hit shield
-
-                        var shieldRadius = Math.PI / 3;
-                        normalVector = subtractVectors(c1.pos, c2.pos);
-                        var aimVector = new Vector(Math.cos(c2.aimDirection), Math.sin(c2.aimDirection));
-                        var angleBetween = Math.acos(dotProduct(normalVector, aimVector) / (vectorMagnitude(normalVector) * vectorMagnitude(aimVector))) - Math.PI;
-
-
-                        if (angleBetween < c2.aimDirection + shieldRadius && angleBetween > c2.aimDirection - shieldRadius) { // hit shield
-
-                            c1.numBounces++;
-                            if (c1.numBounces >= c1.maxBounces) {
-                                c1.destroySelf();
-                            }
-
-
-                        } else { // didn't hit shield
+                            c2.vel.x = v2f.x;
+                            c2.vel.y = v2f.y;
 
                             c1.destroySelf();
                             c2.HP -= (c2.maxHP / 20); // player takes damage equal to 10% of max HP
@@ -608,13 +587,55 @@ function gameLoop() {
                                 c2.die();
                             }
 
-                        }
 
+                        } else {
 
+                            if (dist < c2.radius) { // hit shield
 
+                                var A = c1.radius * c1.radius * Math.PI; // define mass as the area
+                                var B = c2.radius * c2.radius * Math.PI;
 
-                    } // end if player touching bullet test
+                                var v1 = new Vector(c1.vel.x, c1.vel.y); // velocity vector for bullet
+                                var v2 = new Vector(c2.vel.x, c2.vel.y); // velocity vector for player
 
+                                // get the collision normal vector
+                                var normalVector = subtractVectors(c1.pos, c2.pos);
+                                var normalVectorMag = vectorMagnitude(normalVector);
+                                normalVector.x /= normalVectorMag;
+                                normalVector.y /= normalVectorMag;
+
+                                var a1 = dotProduct(normalVector, v1);
+                                var a2 = dotProduct(normalVector, v2);
+
+                                var optimizedP = (2 * (a1 - a2)) / (A + B);
+
+                                var oP1 = scaleVector(normalVector, optimizedP * B);
+                                var oP2 = scaleVector(normalVector, optimizedP * A);
+
+                                var v1f = subtractVectors(v1, oP1);
+                                var v2f = addVectors(v2, oP2);
+
+                                // exchange momentum
+                                c1.vel.x = v1f.x;
+                                c1.vel.y = v1f.y;
+
+                                c2.vel.x = v2f.x;
+                                c2.vel.y = v2f.y;
+
+                                while (circlesTouching(c1.pos.x, c1.pos.y, c1.radius, c2.pos.x, c2.pos.y, c2.radius)) { // move apart
+                                    c1.pos.x += c1.vel.x / 100;
+                                    c1.pos.y += c1.vel.y / 100;
+                                    c2.pos.x += c2.vel.x / 100;
+                                    c2.pos.y += c2.vel.y / 100;
+                                }
+
+                                c1.numBounces++;
+
+                            } // end if dist < c2.radius
+
+                        } // end else
+
+                    } // end if collision < 10
 
                 } // end player loop
 

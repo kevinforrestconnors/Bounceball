@@ -26,9 +26,11 @@ var gameState = {
     resizeGame: function() {
         $('#game').width(1).height(1);
         $('#gui').width(1).height(1);
+        $('.howToPlay') .height(1);
         var s = $(document).height() - 40;
         $('#game').width(s).height(s);
         $('#gui').width(s).height(s);
+        $('.howToPlay').height(s);
         $('.triangle-left').css({
             top: ((s / 2) - 40) + "px",
             left: "-30px"
