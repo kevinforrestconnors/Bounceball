@@ -165,6 +165,7 @@ function Player(id, index) {
     this.id = id; // stuff to determine which player is which
     this.index = index;
     this.active = true;
+    this.score = 0;
 
     this.color = randomRGB();
     this.ringColorChange = null;
@@ -743,7 +744,7 @@ function gameLoop() {
 
     }
 
-    if (numAlivePlayers <= 1) {
+    if (numAlivePlayers <= 1 && gameState.state != "gui") {
         gameState.gameOver();
     }
 

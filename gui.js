@@ -12,7 +12,27 @@ var gameState = {
         3: 0
     },
 
+    scoreGuiPositions: {
+        0: [300, 400, 610, 400, 590, 400],
+        1: [300, 480, 610, 480, 590, 480],
+        2: [300, 560, 610, 560, 590, 560],
+        3: [300, 640, 610, 640, 590, 640]
+    },
+
     state: 'gui',
+
+    gameOverScore: function() {
+
+        for (var p in players) {
+            guiCtx.fillText(players[p].score, gameState.scoreGuiPositions[players[p].index][2], gameState.scoreGuiPositions[players[p].index][3]);
+            guiCtx.fillStyle = darkenRGB(rgbStringToArray(darkenRGB(rgbStringToArray(players[p].color))));
+            guiCtx.fillText("Player " + (players[p].index + 1) + ":", gameState.scoreGuiPositions[players[p].index][0], gameState.scoreGuiPositions[players[p].index][1]);
+            guiCtx.fillStyle = "rgb(120,120,120)";
+        }
+
+    },
+
+    winner: 0,
 
     paneHovered: 0,
     paneColor: function(p) {
@@ -120,6 +140,8 @@ var gameState = {
 
     selectPlayers: function() {
 
+        $("#gui").click(function() {}).mousemove(function() {});
+
         gameState.drawGui();
 
         $("#gui").click(function(e) {
@@ -145,6 +167,7 @@ var gameState = {
                     map.width = numPlayers * 500;
                     map.height = numPlayers * 500;
                     gameState.playingGame();
+                    $("#gui").click(function() {}).mousemove(function() {});
                 }
 
             }
@@ -193,7 +216,7 @@ var gameState = {
             return a.id - b.id;
         };
 
-        players = [];
+        players = {};
 
         var pn = 0;
 
@@ -230,11 +253,109 @@ var gameState = {
 
     gameOverGui: function() {
 
+        background();
+
+        guiCtx.fillStyle = "rgba(200,200,200,0.9)";
+        guiCtx.fillRect(250, 150, 500, 100);
+        guiCtx.fillRect(250, 750, 500, 100);
+
+        guiCtx.fillStyle = "rgba(220,220,220,0.8)";
+        guiCtx.fillRect(250, 250, 500, 500);
+
+        guiCtx.fillStyle = "rgb(120,120,120)";
+        guiCtx.font = "bold 25pt Baskerville";
+        guiCtx.fillText("Game Over!  Player " + (gameState.winner + 1) + " Wins!", 280, 210);
+        guiCtx.fillText("Scores:", 440, 300);
+
+        guiCtx.font = "bold 30pt Baskerville";
+        guiCtx.fillText("Play Again", 280, 810);
+        guiCtx.font = "bold 35pt Baskerville";
+        guiCtx.fillText("Menu", 560, 815);
+        guiCtx.font = "bold 25pt Baskerville";
+
+        gameState.gameOverScore();
+
+        guiCtx.beginPath();
+        guiCtx.rect(250, 150, 500, 700);
+        guiCtx.rect(250, 750, 260, 100); // Play Again Buttons
+        guiCtx.rect(510, 750, 240, 100); // Menu Button
+        guiCtx.stroke();
+        guiCtx.closePath();
+
+        guiCtx.strokeStyle = "rgba(0,0,0,0.2)";
+        guiCtx.beginPath();
+        guiCtx.moveTo(510, 340);
+        guiCtx.lineTo(510, 700);
+        guiCtx.stroke();
+        guiCtx.closePath();
+
     },
 
     gameOver: function() {
 
+        gameState.state = "gameover";
 
+        for (var p in players) {
+            if (players[p].active) {
+                players[p].score++;
+                players[p].active = false;
+                gameState.winner = players[p].index;
+            }
+        }
+
+        map.width = 1000;
+        map.height = 1000;
+
+        $("#gui").click(function (e) {
+
+            var w = $(this).width();
+            var h = $(this).height();
+            var posX = $(this).offset().left;
+            var posY = $(this).offset().top;
+            var relativeClickX = e.pageX - posX;
+            var relativeClickY = e.pageY - posY;
+
+            if (relativeClickY > 0.75 * h && relativeClickY < 0.85 * h) {
+
+                console.log(1);
+
+                if (relativeClickX > 0.25 * w && relativeClickX < 0.51 * w) {
+
+                    for (var p in players) {
+                        players[p].active = true;
+                        players[p].HP = players[p].maxHP; // Heal up
+                        players[p].pos = playerIntialPosition(players[p].index);
+                    }
+
+                    gameState.state = "game";
+
+                    $("gui").click(function () {});
+
+                } else if (relativeClickX > 0.51 * w && relativeClickX < 0.75 * w) {
+
+                    players = {};
+
+                    players.mainScreenDemoPlayer = new Player();
+                    players.mainScreenDemoPlayer.pos = {
+                        x: 500,
+                        y: 500
+                    };
+                    players.mainScreenDemoPlayer.vel = {
+                        x: randomInt(5, 7),
+                        y: randomInt(5, 7)
+                    };
+                    players.mainScreenDemoPlayer.restitution = 0.97;
+                    players.mainScreenDemoPlayer.bullet.speed = 40;
+
+                    gameState.state = "gui";
+
+                    $("gui").click(function () {});
+
+                }
+
+            } // end if
+
+        });
 
     },
 

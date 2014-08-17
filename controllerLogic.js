@@ -63,9 +63,13 @@ var gamepadController = {
             }
 
         } else if (gameState.state == 'game') {
+
             gamepadController.pollStatus();
+
         } else if (gameState.state == 'gameover') {
+
             gameState.gameOverGui();
+
         }
 
         gamepadController.scheduleNextTick();
