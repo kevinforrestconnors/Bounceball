@@ -3,12 +3,13 @@ Bounceball
 
 Bounceball is a locally-multiplayer arcade/action game that makes use of the Gamepad API.  
 It _requires_ a gamepad, such as xBox or Playstation controllers.  
-Keyboard controls do not exist and never will, because the game is not suited for them.
+The game is not suited for keyboard controls.
 
-Browsers tested:
-* Firefox (best performance)
-* Chrome (finicky performance)
-* Safari (no performance, Gamepad API not supported)
+Browser performance:
+* Firefox - best performance
+* Chrome - finicky performance
+* Safari - does not work because the Gamepad API is not supported
+* IE - haha no
 
 ##Gameplay
 
@@ -46,13 +47,9 @@ If the game doesn't show at all, you're likely using a browser that doesn't even
 
 You can always contact me with more complicated issues.
 
-## Known Bugs
-
-* Shoot (R Trigger) does not work in Chrome.  Will be fixed soon!
-    
 ## Notes
 
-Since I only have 2 controllers, I have only tested the game with 2 players.  Please test it with 3 or 4!
+Since I only own 2 controllers, I have only tested the game with 2 players.  Please test it with 3 or 4!
 
 
 ----
